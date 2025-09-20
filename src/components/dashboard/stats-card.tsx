@@ -11,6 +11,9 @@ import {
   Package,
   Activity,
   Server,
+  ShieldCheck,
+  Grid3X3,
+  Database,
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
@@ -23,7 +26,7 @@ interface StatsCardProps {
     type: 'increase' | 'decrease' | 'neutral'
     period?: string
   }
-  icon?: 'users' | 'package' | 'activity' | 'server'
+  icon?: 'users' | 'package' | 'activity' | 'server' | 'shield-check' | 'grid-3x3' | 'database'
   description?: string
   className?: string
   loading?: boolean
@@ -34,6 +37,9 @@ const iconMap = {
   package: Package,
   activity: Activity,
   server: Server,
+  'shield-check': ShieldCheck,
+  'grid-3x3': Grid3X3,
+  database: Database,
 }
 
 export function StatsCard({

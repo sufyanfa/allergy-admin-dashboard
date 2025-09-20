@@ -81,16 +81,6 @@ export const NAVIGATION_ITEMS = [
     href: '/allergies',
     icon: 'AlertTriangle',
   },
-  {
-    title: 'Analytics',
-    href: '/analytics',
-    icon: 'PieChart',
-  },
-  {
-    title: 'Settings',
-    href: '/settings',
-    icon: 'Settings',
-  },
 ] as const
 
 // User Roles and Permissions

@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import { User, PaginatedResponse } from '@/types'
+import { User, PaginatedResponse, UsersOverview, UsersOverviewResponse, ApiResponse } from '@/types'
 import apiClient from '@/lib/api/client'
 
 interface UsersState {
   users: User[]
   selectedUser: User | null
+  overview: UsersOverview | null
   loading: boolean
   error: string | null
   pagination: {
@@ -18,15 +19,18 @@ interface UsersState {
     search: string
     role: string
     status: string
+    verified: string
   }
 }
 
 interface UsersActions {
+  fetchUsersOverview: () => Promise<void>
   fetchUsers: (params?: Record<string, unknown>) => Promise<void>
   fetchUser: (id: string) => Promise<void>
   updateUser: (id: string, data: Partial<User>) => Promise<void>
   updateUserStatus: (id: string, status: 'active' | 'inactive' | 'suspended') => Promise<void>
   deleteUser: (id: string) => Promise<void>
+  searchUsers: (query: string) => Promise<void>
   setFilters: (filters: Partial<UsersState['filters']>) => void
   setPagination: (page: number, limit?: number) => void
   clearError: () => void
@@ -39,6 +43,7 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
   // State
   users: [],
   selectedUser: null,
+  overview: null,
   loading: false,
   error: null,
   pagination: {
@@ -52,9 +57,45 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
     search: '',
     role: '',
     status: '',
+    verified: '',
   },
 
   // Actions
+  fetchUsersOverview: async () => {
+    set({ loading: true, error: null })
+
+    try {
+      const response = await apiClient.get<ApiResponse<UsersOverviewResponse>>(
+        '/admin/users/overview'
+      )
+
+      if (response.success && response.data) {
+        const { overview, users, pagination } = response.data
+        set({
+          overview,
+          users,
+          pagination: {
+            page: Math.floor(pagination.offset / pagination.limit) + 1,
+            limit: pagination.limit,
+            total: pagination.total,
+            pages: pagination.pages,
+            hasMore: pagination.offset + pagination.limit < pagination.total
+          },
+          loading: false
+        })
+      } else {
+        throw new Error(response.message || 'Failed to fetch users overview')
+      }
+    } catch (error: unknown) {
+      const message = (error as Error)?.message || 'Failed to fetch users overview'
+      set({
+        error: message,
+        loading: false
+      })
+      throw error
+    }
+  },
+
   fetchUsers: async (params = {}) => {
     set({ loading: true, error: null })
 
@@ -161,6 +202,11 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
 
   updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'suspended') => {
     await get().updateUser(id, { status })
+  },
+
+  searchUsers: async (query: string) => {
+    set((state) => ({ ...state, filters: { ...state.filters, search: query } }))
+    await get().fetchUsersOverview()
   },
 
   deleteUser: async (id: string) => {

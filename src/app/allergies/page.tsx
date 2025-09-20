@@ -1,11 +1,11 @@
 'use client'
 
 import { AdminLayout } from '@/components/layout/admin-layout'
-import { ProductsOverview } from '@/components/products/products-overview'
+import { AllergiesOverview } from '@/components/allergies/allergies-overview'
 import { useRequireAuth } from '@/lib/hooks/use-auth'
 import { Card, CardContent } from '@/components/ui/card'
 
-export default function ProductsPage() {
+export default function AllergiesPage() {
   const { isAdmin } = useRequireAuth()
 
   if (!isAdmin) {
@@ -25,7 +25,7 @@ export default function ProductsPage() {
 
   return (
     <AdminLayout>
-      <ProductsOverview />
+      <AllergiesOverview />
     </AdminLayout>
   )
 }

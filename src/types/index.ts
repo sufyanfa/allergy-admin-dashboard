@@ -113,6 +113,79 @@ export interface ProductSearchResult {
   brands: string[]
 }
 
+export interface ProductsOverview {
+  totalProducts: number
+  verifiedProducts: number
+  categoriesCount: number
+  dataSourcesCount: number
+}
+
+export interface ProductsOverviewResponse {
+  overview: ProductsOverview
+  categories: Array<{ category: string; count: number }>
+  dataSources: Array<{ source: string; count: number }>
+  products: Product[]
+  pagination: {
+    total: number
+    limit: number
+    offset: number
+    pages: number
+  }
+}
+
+export interface AllergiesOverview {
+  totalAllergies: number
+  activeAllergies: number
+  severityDistribution: {
+    mild: number
+    moderate: number
+    severe: number
+  }
+  userAllergiesCount: number
+}
+
+export interface AllergiesOverviewResponse {
+  overview: AllergiesOverview
+  allergies: Allergy[]
+  pagination: {
+    total: number
+    limit: number
+    offset: number
+    pages: number
+  }
+}
+
+export interface UsersOverview {
+  totalUsers: {
+    count: number
+    growthPercentage: number
+  }
+  activeUsers: {
+    count: number
+    percentage: number
+  }
+  premiumUsers: {
+    count: number
+    percentage: number
+  }
+  roleDistribution: Array<{
+    role: string
+    count: number
+    percentage: number
+  }>
+}
+
+export interface UsersOverviewResponse {
+  overview: UsersOverview
+  users: User[]
+  pagination: {
+    total: number
+    limit: number
+    offset: number
+    pages: number
+  }
+}
+
 // Statistics Types
 export interface DashboardOverview {
   users: {

@@ -9,8 +9,6 @@ import {
   Users,
   Package,
   AlertTriangle,
-  PieChart,
-  Settings,
   LucideIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,8 +18,6 @@ const iconMap: Record<string, LucideIcon> = {
   Users,
   Package,
   AlertTriangle,
-  PieChart,
-  Settings,
 }
 
 interface SidebarProps {

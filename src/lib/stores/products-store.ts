@@ -6,6 +6,8 @@ import {
   AllergyCheck,
   ProductSearchFilters,
   ProductSearchResult,
+  ProductsOverview,
+  ProductsOverviewResponse,
   PaginatedResponse,
   ApiResponse
 } from '@/types'
@@ -17,6 +19,7 @@ interface ProductsState {
   categories: ProductCategory[]
   currentProduct: Product | null
   searchResults: ProductSearchResult | null
+  overview: ProductsOverview | null
   isLoading: boolean
   error: string | null
   filters: ProductSearchFilters
@@ -36,6 +39,9 @@ interface ProductsActions {
   createProduct: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Product>
   updateProduct: (id: string, data: Partial<Product>) => Promise<Product>
   deleteProduct: (id: string) => Promise<void>
+
+  // Overview
+  fetchProductsOverview: () => Promise<void>
 
   // Search and Filter
   searchProducts: (filters: ProductSearchFilters) => Promise<void>
@@ -77,6 +83,7 @@ export const useProductsStore = create<ProductsStore>()(
       categories: [],
       currentProduct: null,
       searchResults: null,
+      overview: null,
       isLoading: false,
       error: null,
       filters: initialFilters,
@@ -108,6 +115,42 @@ export const useProductsStore = create<ProductsStore>()(
           }
         } catch (error: unknown) {
           const message = (error as Error)?.message || 'Failed to fetch products'
+          set({
+            error: message,
+            isLoading: false
+          })
+          throw error
+        }
+      },
+
+      fetchProductsOverview: async () => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const response = await apiClient.get<ApiResponse<ProductsOverviewResponse>>(
+            '/admin/products/overview'
+          )
+
+          if (response.success && response.data) {
+            const { overview, categories, dataSources, products, pagination } = response.data
+            set({
+              overview,
+              products,
+              categories: categories.map(c => ({ name: c.category, count: c.count })),
+              pagination: {
+                page: Math.floor(pagination.offset / pagination.limit) + 1,
+                limit: pagination.limit,
+                total: pagination.total,
+                pages: pagination.pages,
+                hasMore: pagination.offset + pagination.limit < pagination.total
+              },
+              isLoading: false
+            })
+          } else {
+            throw new Error(response.message || 'Failed to fetch products overview')
+          }
+        } catch (error: unknown) {
+          const message = (error as Error)?.message || 'Failed to fetch products overview'
           set({
             error: message,
             isLoading: false
