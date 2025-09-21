@@ -146,30 +146,32 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
   return (
     <div className={cn('space-y-6', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
           <p className="text-gray-600 mt-1">Monitor your allergy checker platform performance</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleTestConnection}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={handleTestConnection} size="sm">
             <Activity className="h-4 w-4 mr-2" />
-            Test API
+            <span className="hidden sm:inline">Test API</span>
+            <span className="sm:hidden">Test</span>
           </Button>
-          <Button variant="outline" onClick={handleRefreshAll}>
+          <Button variant="outline" onClick={handleRefreshAll} size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh All
+            <span className="hidden sm:inline">Refresh All</span>
+            <span className="sm:hidden">Refresh</span>
           </Button>
-          <div className="relative">
-            <Button variant="outline" onClick={() => handleExport('json')}>
-              <Download className="h-4 w-4 mr-2" />
-              Export JSON
-            </Button>
-          </div>
-          <Button variant="outline" onClick={() => handleExport('csv')}>
+          <Button variant="outline" onClick={() => handleExport('json')} size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            <span className="hidden lg:inline">Export JSON</span>
+            <span className="lg:hidden">JSON</span>
+          </Button>
+          <Button variant="outline" onClick={() => handleExport('csv')} size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            <span className="hidden lg:inline">Export CSV</span>
+            <span className="lg:hidden">CSV</span>
           </Button>
         </div>
       </div>
@@ -258,7 +260,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       </div>
 
       {/* Charts Row 2 - Distribution Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <DistributionChart
           title="User Distribution by Role"
           data={userDemographicsData}
@@ -301,7 +303,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
 
         {/* Activity Overview */}
         <div className="lg:col-span-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
               title="Searches Today"
               value={activityStatistics?.overview.searchesToday || 0}

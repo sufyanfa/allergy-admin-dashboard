@@ -28,10 +28,10 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
 
   return (
-    <div className={cn('flex h-full w-64 flex-col bg-white border-r', className)}>
+    <div className={cn('hidden md:flex h-full w-64 flex-col bg-white border-r', className)}>
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-6">
-        <h1 className="text-xl font-bold text-primary">
+      <div className="flex h-16 items-center border-b px-4 md:px-6">
+        <h1 className="text-lg md:text-xl font-bold text-primary">
           Allergy Admin
         </h1>
       </div>

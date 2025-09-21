@@ -12,12 +12,24 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { LogOut, User, Settings } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { LogOut, User, Settings, Menu, BarChart3, Users, Package, AlertTriangle } from 'lucide-react'
+import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { NAVIGATION_ITEMS } from '@/constants'
+import { useState } from 'react'
+
+const iconMap = {
+  BarChart3,
+  Users,
+  Package,
+  AlertTriangle,
+}
 
 export function Header() {
   const { user, logout } = useAuthStore()
   const router = useRouter()
+  const pathname = usePathname()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await logout()
@@ -29,11 +41,25 @@ export function Header() {
     : user?.username?.substring(0, 2).toUpperCase() || 'AD'
 
   return (
-    <header className="h-16 bg-white border-b px-6 flex items-center justify-between">
+    <header className="relative h-16 bg-white border-b px-4 md:px-6 flex items-center justify-between">
       <div className="flex items-center space-x-4">
-        <h1 className="text-lg font-semibold text-gray-900">
-          Admin Dashboard
-        </h1>
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="md:hidden"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
+        {/* Logo/Title */}
+        <div className="flex items-center space-x-2">
+          <h1 className="text-lg md:text-xl font-semibold text-gray-900">
+            <span className="hidden sm:inline">Admin Dashboard</span>
+            <span className="sm:hidden">Admin</span>
+          </h1>
+        </div>
       </div>
 
       <div className="flex items-center space-x-4">
@@ -82,6 +108,40 @@ export function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Mobile Navigation Overlay */}
+      {mobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-40"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Mobile Menu */}
+          <div className="absolute top-16 left-0 right-0 bg-white border-b shadow-lg md:hidden z-50">
+            <nav className="px-4 py-2 space-y-1">
+              {NAVIGATION_ITEMS.map((item) => {
+                const Icon = iconMap[item.icon as keyof typeof iconMap]
+                const isActive = pathname === item.href
+
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <Button
+                      variant={isActive ? 'default' : 'ghost'}
+                      className="w-full justify-start"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Icon className="mr-3 h-5 w-5" />
+                      {item.title}
+                    </Button>
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
+        </>
+      )}
     </header>
   )
 }
