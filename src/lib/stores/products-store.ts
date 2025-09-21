@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
   Product,
+  ProductInput,
   ProductCategory,
   AllergyCheck,
   ProductSearchFilters,
@@ -36,7 +37,7 @@ interface ProductsActions {
   // Product CRUD
   fetchProducts: (page?: number, limit?: number) => Promise<void>
   fetchProduct: (id: string) => Promise<Product>
-  createProduct: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Product>
+  createProduct: (data: ProductInput) => Promise<Product>
   updateProduct: (id: string, data: Partial<Product>) => Promise<Product>
   deleteProduct: (id: string) => Promise<void>
 
@@ -132,11 +133,18 @@ export const useProductsStore = create<ProductsStore>()(
           )
 
           if (response.success && response.data) {
-            const { overview, categories, dataSources, products, pagination } = response.data
+            const { overview, categories, products, pagination } = response.data
             set({
               overview,
               products,
-              categories: categories.map(c => ({ name: c.category, count: c.count })),
+              categories: categories.map(c => ({
+                id: `cat-${c.category}`,
+                nameAr: c.category,
+                nameEn: c.category,
+                isActive: true,
+                name: c.category,
+                count: c.count
+              })) as any,
               pagination: {
                 page: Math.floor(pagination.offset / pagination.limit) + 1,
                 limit: pagination.limit,
@@ -191,17 +199,19 @@ export const useProductsStore = create<ProductsStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await apiClient.post<ApiResponse<Product>>(
+          const response = await apiClient.post<ApiResponse<{ product: Product }>>(
             API_ENDPOINTS.PRODUCTS.CREATE,
             data
           )
 
           if (response.success && response.data) {
-            const newProduct = response.data
+            const newProduct = response.data.product
             set((state) => ({
               products: [newProduct, ...state.products],
               isLoading: false
             }))
+            // Refresh overview to update counts
+            await get().fetchProductsOverview()
             return newProduct
           } else {
             throw new Error(response.message || 'Failed to create product')
@@ -220,13 +230,13 @@ export const useProductsStore = create<ProductsStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await apiClient.put<ApiResponse<Product>>(
+          const response = await apiClient.put<ApiResponse<{ product: Product }>>(
             API_ENDPOINTS.PRODUCTS.UPDATE(id),
             data
           )
 
           if (response.success && response.data) {
-            const updatedProduct = response.data
+            const updatedProduct = response.data.product
             set((state) => ({
               products: state.products.map(p =>
                 p.id === id ? updatedProduct : p

@@ -5,7 +5,7 @@ import { useProductsStore } from '@/lib/stores/products-store'
 import { StatsCard } from '../dashboard/stats-card'
 import { DistributionChart } from '../dashboard/distribution-chart'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { RefreshCw, Download, Search, Filter, Plus, ScanLine } from 'lucide-react'
@@ -31,7 +31,6 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
     overview,
     fetchProductsOverview,
     fetchProducts,
-    fetchCategories,
     searchProducts,
     searchIntegrated,
     setFilters,
@@ -121,19 +120,15 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
   }
 
   // Transform data for charts
-  const categoriesChartData = overview?.categories?.map((item, index) => ({
-    label: item.category,
-    value: item.count,
-    percentage: overview.totalProducts ? (item.count / overview.totalProducts * 100) : 0,
+  const categoriesChartData = categories?.slice(0, 8).map((item: any, index: number) => ({
+    label: item.name || item.category || 'Unknown',
+    value: item.count || 0,
+    percentage: overview?.totalProducts ? (item.count / overview.totalProducts * 100) : 0,
     color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'][index % 8]
   })) || null
 
-  const dataSourcesChartData = overview?.dataSources?.map((item, index) => ({
-    label: item.source,
-    value: item.count,
-    percentage: overview.totalProducts ? (item.count / overview.totalProducts * 100) : 0,
-    color: ['#3B82F6', '#10B981', '#F59E0B'][index % 3]
-  })) || null
+  // Data sources chart will be removed for now as data structure is not available
+  const dataSourcesChartData = null
 
   return (
     <div className={cn('space-y-6', className)}>

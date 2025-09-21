@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import apiClient from '@/lib/api/client'
 
 export function useAuth(requireAuth = true) {
   const {

@@ -175,17 +175,19 @@ export const useAllergiesStore = create<AllergiesStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await apiClient.post<ApiResponse<Allergy>>(
-            '/admin/allergies',
+          const response = await apiClient.post<ApiResponse<{ allergy: Allergy }>>(
+            '/allergies',
             data
           )
 
           if (response.success && response.data) {
-            const newAllergy = response.data
+            const newAllergy = response.data.allergy
             set((state) => ({
               allergies: [newAllergy, ...state.allergies],
               isLoading: false
             }))
+            // Refresh overview to update counts
+            await get().fetchAllergiesOverview()
             return newAllergy
           } else {
             throw new Error(response.message || 'Failed to create allergy')
@@ -204,13 +206,13 @@ export const useAllergiesStore = create<AllergiesStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await apiClient.put<ApiResponse<Allergy>>(
-            `/admin/allergies/${id}`,
+          const response = await apiClient.put<ApiResponse<{ allergy: Allergy }>>(
+            `/allergies/${id}`,
             data
           )
 
           if (response.success && response.data) {
-            const updatedAllergy = response.data
+            const updatedAllergy = response.data.allergy
             set((state) => ({
               allergies: state.allergies.map(a =>
                 a.id === id ? updatedAllergy : a
@@ -237,7 +239,7 @@ export const useAllergiesStore = create<AllergiesStore>()(
 
         try {
           const response = await apiClient.delete<ApiResponse<void>>(
-            `/admin/allergies/${id}`
+            `/allergies/${id}`
           )
 
           if (response.success) {

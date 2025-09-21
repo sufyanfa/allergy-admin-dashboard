@@ -1,6 +1,7 @@
 // User Types
 export interface User {
   id: string
+  name?: string // Alias for fullName for backward compatibility
   fullName?: string
   username?: string
   email?: string
@@ -18,6 +19,7 @@ export interface User {
   onboardingCompleted: boolean
   emailNotifications: boolean
   pushNotifications: boolean
+  allergiesCount?: number
   createdAt: string
   updatedAt: string
 }
@@ -67,12 +69,33 @@ export interface Product {
 }
 
 export interface Ingredient {
-  id: string
+  id?: string // Optional for creation, assigned by backend
   nameAr: string
   nameEn: string
-  isAllergen: boolean
-  allergenType?: string
+  isAllergen?: boolean // Optional, determined by backend
+  allergenType?: string // Optional, determined by backend
   orderIndex?: number
+}
+
+// For API requests when creating products
+export interface IngredientInput {
+  nameAr: string
+  nameEn: string
+  orderIndex?: number
+}
+
+export interface ProductInput {
+  barcode: string
+  nameAr: string
+  nameEn?: string
+  brandAr: string
+  brandEn?: string
+  category: string
+  subcategory?: string
+  imageUrl?: string
+  countryOfOrigin?: string
+  dataSource: 'api' | 'manual' | 'community'
+  ingredients?: IngredientInput[]
 }
 
 export interface ProductCategory {
@@ -82,6 +105,19 @@ export interface ProductCategory {
   description?: string
   parentId?: string
   isActive: boolean
+}
+
+export interface Allergy {
+  id: string
+  nameAr: string
+  nameEn?: string
+  descriptionAr?: string
+  descriptionEn?: string
+  severity: 'mild' | 'moderate' | 'severe'
+  isActive: boolean
+  userCount?: number
+  createdAt: string
+  updatedAt?: string
 }
 
 export interface AllergyCheck {

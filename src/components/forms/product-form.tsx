@@ -23,14 +23,10 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Plus, X, Loader2 } from 'lucide-react'
-import { Product, ProductCategory, Ingredient } from '@/types'
+import { Product, ProductInput, ProductCategory } from '@/types'
 import { useProductsStore } from '@/lib/stores/products-store'
 import { toast } from 'sonner'
 
@@ -45,8 +41,6 @@ const productSchema = z.object({
   imageUrl: z.string().url().optional().or(z.literal('')),
   countryOfOrigin: z.string().optional(),
   dataSource: z.enum(['api', 'manual', 'community']),
-  verified: z.boolean(),
-  confidenceScore: z.number().min(0).max(100),
 })
 
 type ProductFormData = z.infer<typeof productSchema>
@@ -54,8 +48,6 @@ type ProductFormData = z.infer<typeof productSchema>
 interface IngredientFormData {
   nameAr: string
   nameEn: string
-  isAllergen: boolean
-  allergenType?: string
   orderIndex: number
 }
 
@@ -71,8 +63,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
   const [newIngredient, setNewIngredient] = useState<IngredientFormData>({
     nameAr: '',
     nameEn: '',
-    isAllergen: false,
-    allergenType: '',
     orderIndex: 0
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -92,8 +82,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
       imageUrl: '',
       countryOfOrigin: '',
       dataSource: 'manual',
-      verified: false,
-      confidenceScore: 100,
     },
   })
 
@@ -110,8 +98,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
         imageUrl: product.imageUrl || '',
         countryOfOrigin: product.countryOfOrigin || '',
         dataSource: product.dataSource,
-        verified: product.verified,
-        confidenceScore: product.confidenceScore,
       })
 
       if (product.ingredients) {
@@ -119,8 +105,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
           product.ingredients.map((ing, index) => ({
             nameAr: ing.nameAr,
             nameEn: ing.nameEn,
-            isAllergen: ing.isAllergen,
-            allergenType: ing.allergenType || '',
             orderIndex: ing.orderIndex || index
           }))
         )
@@ -143,8 +127,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
       setNewIngredient({
         nameAr: '',
         nameEn: '',
-        isAllergen: false,
-        allergenType: '',
         orderIndex: 0
       })
     }
@@ -158,14 +140,11 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
     setIsSubmitting(true)
 
     try {
-      const productData = {
+      const productData: ProductInput = {
         ...data,
         ingredients: ingredients.map((ing, index) => ({
-          id: `temp-${index}`,
           nameAr: ing.nameAr,
           nameEn: ing.nameEn,
-          isAllergen: ing.isAllergen,
-          allergenType: ing.allergenType,
           orderIndex: index
         }))
       }
@@ -386,47 +365,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="confidenceScore"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confidence Score</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormDescription>0-100%</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="verified"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Verified</FormLabel>
-                          <FormDescription>
-                            Mark as admin verified
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </CardContent>
             </Card>
@@ -456,15 +394,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                         setNewIngredient(prev => ({ ...prev, nameEn: e.target.value }))
                       }
                     />
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={newIngredient.isAllergen}
-                        onCheckedChange={(checked) =>
-                          setNewIngredient(prev => ({ ...prev, isAllergen: checked }))
-                        }
-                      />
-                      <span className="text-sm">Allergen</span>
-                    </div>
                     <Button
                       type="button"
                       onClick={handleAddIngredient}
@@ -475,16 +404,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                       Add
                     </Button>
                   </div>
-                  {newIngredient.isAllergen && (
-                    <Input
-                      placeholder="Allergen type (e.g., nuts, dairy)"
-                      value={newIngredient.allergenType}
-                      onChange={(e) =>
-                        setNewIngredient(prev => ({ ...prev, allergenType: e.target.value }))
-                      }
-                      className="mt-2"
-                    />
-                  )}
                 </div>
 
                 {/* Ingredients List */}
@@ -507,11 +426,6 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                                 </div>
                               )}
                             </div>
-                            {ingredient.isAllergen && (
-                              <Badge variant="destructive" className="text-xs">
-                                Allergen
-                              </Badge>
-                            )}
                           </div>
                           <Button
                             type="button"

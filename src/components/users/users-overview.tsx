@@ -25,9 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { RefreshCw, Download, Search, Filter, Plus, Users, UserCheck, UserX, TrendingUp } from 'lucide-react'
+import { RefreshCw, Download, Search, Filter, Plus, TrendingUp } from 'lucide-react'
 import { UserForm } from '@/components/forms/user-form'
-import { USER_ROLES, USER_STATUSES } from '@/constants'
 import { User } from '@/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -46,8 +45,8 @@ export function UsersOverview({ className }: UsersOverviewProps) {
     pagination,
     filters,
     fetchUsersOverview,
+    createUser,
     updateUser,
-    updateUserStatus,
     deleteUser,
     searchUsers,
     setFilters,
@@ -97,7 +96,8 @@ export function UsersOverview({ className }: UsersOverviewProps) {
         await updateUser(selectedUser.id, data)
         toast.success('User updated successfully')
       } else {
-        toast.error('Creating new users is not yet implemented')
+        await createUser(data)
+        toast.success('User created successfully')
       }
       setIsFormOpen(false)
     } catch (error: unknown) {
@@ -105,14 +105,6 @@ export function UsersOverview({ className }: UsersOverviewProps) {
     }
   }
 
-  const handleStatusUpdate = async (userId: string, status: 'active' | 'inactive' | 'suspended') => {
-    try {
-      await updateUserStatus(userId, status)
-      toast.success(`User ${status === 'active' ? 'activated' : status === 'suspended' ? 'suspended' : 'deactivated'} successfully`)
-    } catch (error: unknown) {
-      toast.error((error as Error)?.message || 'Failed to update user status')
-    }
-  }
 
   const handleDeleteConfirm = async () => {
     if (deleteDialog.userId) {
@@ -141,7 +133,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
   const handleExport = () => {
     const csvData = users.map(user => ({
       id: user.id,
-      name: user.name,
+      name: user.name || user.fullName || user.username || '',
       email: user.email || '',
       role: user.role,
       status: user.status,
@@ -171,23 +163,23 @@ export function UsersOverview({ className }: UsersOverviewProps) {
     color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index % 5]
   })) || null
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string): "default" | "destructive" | "outline" | "secondary" => {
     const variants = {
-      active: 'default',
-      inactive: 'secondary',
-      suspended: 'destructive',
-      pending: 'outline'
+      active: 'default' as const,
+      inactive: 'secondary' as const,
+      suspended: 'destructive' as const,
+      pending: 'outline' as const
     }
     return variants[status as keyof typeof variants] || 'default'
   }
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (role: string): "default" | "destructive" | "outline" | "secondary" => {
     const variants = {
-      admin: 'destructive',
-      moderator: 'default',
-      premium_user: 'secondary',
-      user: 'outline',
-      guest: 'outline'
+      admin: 'destructive' as const,
+      moderator: 'default' as const,
+      premium_user: 'secondary' as const,
+      user: 'outline' as const,
+      guest: 'outline' as const
     }
     return variants[role as keyof typeof variants] || 'outline'
   }
@@ -482,7 +474,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
                 >
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{user.name}</h3>
+                      <h3 className="font-semibold">{user.name || user.fullName || user.username || 'Unknown User'}</h3>
                       <Badge variant={getRoleBadge(user.role)}>
                         {user.role}
                       </Badge>

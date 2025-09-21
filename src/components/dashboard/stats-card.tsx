@@ -14,8 +14,6 @@ import {
   ShieldCheck,
   Grid3X3,
   Database,
-  ArrowUp,
-  ArrowDown
 } from 'lucide-react'
 
 interface StatsCardProps {

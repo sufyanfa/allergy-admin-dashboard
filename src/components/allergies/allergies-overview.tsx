@@ -16,6 +16,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RefreshCw, Download, Search, Filter, Plus, AlertTriangle } from 'lucide-react'
+import { AllergyForm } from '@/components/forms/allergy-form'
+import { Allergy } from '@/types'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 interface AllergiesOverviewProps {
@@ -26,21 +29,24 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
   const {
     allergies,
     overview,
+    currentAllergy,
     isLoading,
     error,
-    searchQuery,
     severityFilter,
     activeFilter,
-    pagination,
     fetchAllergiesOverview,
+    createAllergy,
+    updateAllergy,
     searchAllergies,
     setFilters,
     clearFilters,
-    clearError
+    clearError,
+    setCurrentAllergy
   } = useAllergiesStore()
 
   const [showFilters, setShowFilters] = useState(false)
   const [localSearchQuery, setLocalSearchQuery] = useState('')
+  const [isFormOpen, setIsFormOpen] = useState(false)
 
   useEffect(() => {
     // Initial data fetch - fetch overview which includes allergies
@@ -106,6 +112,44 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
     window.URL.revokeObjectURL(url)
   }
 
+  const handleCreateAllergy = () => {
+    setCurrentAllergy(null)
+    setIsFormOpen(true)
+  }
+
+  const handleEditAllergy = (allergy: Allergy) => {
+    setCurrentAllergy(allergy)
+    setIsFormOpen(true)
+  }
+
+  const handleFormSubmit = async (data: Partial<Allergy>) => {
+    try {
+      if (currentAllergy) {
+        await updateAllergy(currentAllergy.id, data)
+        toast.success('Allergy updated successfully')
+      } else {
+        // Ensure required fields for creation
+        if (!data.nameAr) {
+          toast.error('Arabic name is required')
+          return
+        }
+        const allergyData = {
+          nameAr: data.nameAr,
+          nameEn: data.nameEn || '',
+          descriptionAr: data.descriptionAr || '',
+          descriptionEn: data.descriptionEn || '',
+          severity: data.severity || 'mild' as const,
+          isActive: data.isActive ?? true
+        }
+        await createAllergy(allergyData)
+        toast.success('Allergy created successfully')
+      }
+      setIsFormOpen(false)
+    } catch (error: unknown) {
+      toast.error((error as Error)?.message || 'Failed to save allergy')
+    }
+  }
+
   // Transform data for charts
   const severityChartData = overview?.severityDistribution ? [
     {
@@ -128,11 +172,11 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
     }
   ] : null
 
-  const getSeverityBadge = (severity: string) => {
+  const getSeverityBadge = (severity: string): "default" | "destructive" | "outline" | "secondary" => {
     const variants = {
-      mild: 'default',
-      moderate: 'secondary',
-      severe: 'destructive'
+      mild: 'default' as const,
+      moderate: 'secondary' as const,
+      severe: 'destructive' as const
     }
     return variants[severity as keyof typeof variants] || 'default'
   }
@@ -160,7 +204,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
             <AlertTriangle className="h-4 w-4 mr-2" />
             Check Allergies
           </Button>
-          <Button onClick={() => {}}>
+          <Button onClick={handleCreateAllergy}>
             <Plus className="h-4 w-4 mr-2" />
             Add Allergy
           </Button>
@@ -396,7 +440,11 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
                     <span className="text-sm text-muted-foreground">
                       {allergy.userCount || 0} users
                     </span>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditAllergy(allergy)}
+                    >
                       Edit
                     </Button>
                   </div>
@@ -412,6 +460,15 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Allergy Form */}
+      <AllergyForm
+        allergy={currentAllergy}
+        open={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleFormSubmit}
+        loading={isLoading}
+      />
     </div>
   )
 }

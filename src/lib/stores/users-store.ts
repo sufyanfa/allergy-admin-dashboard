@@ -27,6 +27,7 @@ interface UsersActions {
   fetchUsersOverview: () => Promise<void>
   fetchUsers: (params?: Record<string, unknown>) => Promise<void>
   fetchUser: (id: string) => Promise<void>
+  createUser: (data: Partial<User>) => Promise<void>
   updateUser: (id: string, data: Partial<User>) => Promise<void>
   updateUserStatus: (id: string, status: 'active' | 'inactive' | 'suspended') => Promise<void>
   deleteUser: (id: string) => Promise<void>
@@ -165,6 +166,40 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
         loading: false,
         selectedUser: null,
       })
+    }
+  },
+
+  createUser: async (data: Partial<User>) => {
+    set({ loading: true, error: null })
+
+    try {
+      const response = await apiClient.post<{
+        success: boolean
+        message?: string
+        data: { profile: User }
+      }>('/profiles', data)
+
+      if (response.success) {
+        const newUser = response.data.profile
+        const { users } = get()
+
+        set({
+          users: [newUser, ...users],
+          loading: false,
+        })
+
+        // Refresh overview to update counts
+        await get().fetchUsersOverview()
+      } else {
+        throw new Error(response.message || 'Failed to create user')
+      }
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error)?.message || 'Failed to create user'
+      set({
+        error: message,
+        loading: false,
+      })
+      throw error
     }
   },
 
