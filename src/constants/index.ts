@@ -12,6 +12,14 @@ export const API_ENDPOINTS = {
     UPDATE: '/profiles/me',
     ALLERGIES: '/profiles/me/allergies',
   },
+  ALLERGIES: {
+    LIST: '/allergies',
+    GET: (id: string) => `/allergies/${id}`,
+    CREATE: '/allergies',
+    UPDATE: (id: string) => `/allergies/${id}`,
+    DELETE: (id: string) => `/allergies/${id}`,
+    OVERVIEW: '/admin/allergies/overview',
+  },
   PRODUCTS: {
     LIST: '/products',
     GET: (id: string) => `/products/${id}`,

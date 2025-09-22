@@ -77,7 +77,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
       toast.success('Product deleted successfully')
       setShowDeleteDialog(false)
       setProductToDelete(null)
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete product')
     }
   }
@@ -235,12 +235,18 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        {format(new Date(product.createdAt), 'MMM dd, yyyy')}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(product.createdAt), 'HH:mm')}
-                      </div>
+                      {product.createdAt ? (
+                        <>
+                          <div className="text-sm">
+                            {format(new Date(product.createdAt), 'MMM dd, yyyy')}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(product.createdAt), 'HH:mm')}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">N/A</div>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

@@ -65,7 +65,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
 
   useEffect(() => {
     fetchUsersOverview()
-  }, [])
+  }, [fetchUsersOverview])
 
   // Update filters when search term changes
   useEffect(() => {
@@ -78,7 +78,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
     }, 500)
 
     return () => clearTimeout(timeoutId)
-  }, [searchTerm])
+  }, [searchTerm, searchUsers, fetchUsersOverview])
 
   const handleCreateUser = () => {
     setSelectedUser(null)

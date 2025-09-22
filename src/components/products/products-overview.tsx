@@ -46,7 +46,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
   useEffect(() => {
     // Initial data fetch - fetch overview which includes products
     fetchProductsOverview()
-  }, [])
+  }, [fetchProductsOverview])
 
   const handleSearch = async () => {
     if (searchQuery.trim()) {
@@ -120,7 +120,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
   }
 
   // Transform data for charts
-  const categoriesChartData = categories?.slice(0, 8).map((item: any, index: number) => ({
+  const categoriesChartData = categories?.slice(0, 8).map((item: { name?: string; category?: string; count: number }, index: number) => ({
     label: item.name || item.category || 'Unknown',
     value: item.count || 0,
     percentage: overview?.totalProducts ? (item.count / overview.totalProducts * 100) : 0,

@@ -175,24 +175,62 @@ class ApiClient {
     return accessToken
   }
 
+  private handleApiError(error: any, method: string, url: string): never {
+    const status = error.response?.status
+    const message = error.response?.data?.message || error.message
+    const details = error.response?.data
+
+    console.error(`API ${method} Error:`, {
+      url,
+      status,
+      message,
+      details,
+      fullError: error.response?.data
+    })
+
+    // Create a more informative error
+    const apiError = new Error(`API ${method} ${url} failed: ${message}`)
+    ;(apiError as any).status = status
+    ;(apiError as any).details = details
+    ;(apiError as any).originalError = error
+
+    throw apiError
+  }
+
   async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.get(url, config)
-    return response.data
+    try {
+      const response = await this.client.get(url, config)
+      return response.data
+    } catch (error) {
+      this.handleApiError(error, 'GET', url)
+    }
   }
 
   async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.post(url, data, config)
-    return response.data
+    try {
+      const response = await this.client.post(url, data, config)
+      return response.data
+    } catch (error) {
+      this.handleApiError(error, 'POST', url)
+    }
   }
 
   async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.put(url, data, config)
-    return response.data
+    try {
+      const response = await this.client.put(url, data, config)
+      return response.data
+    } catch (error) {
+      this.handleApiError(error, 'PUT', url)
+    }
   }
 
   async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.delete(url, config)
-    return response.data
+    try {
+      const response = await this.client.delete(url, config)
+      return response.data
+    } catch (error) {
+      this.handleApiError(error, 'DELETE', url)
+    }
   }
 }
 

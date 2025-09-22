@@ -144,7 +144,7 @@ export const useProductsStore = create<ProductsStore>()(
                 isActive: true,
                 name: c.category,
                 count: c.count
-              })) as any,
+              })) as ProductCategory[],
               pagination: {
                 page: Math.floor(pagination.offset / pagination.limit) + 1,
                 limit: pagination.limit,

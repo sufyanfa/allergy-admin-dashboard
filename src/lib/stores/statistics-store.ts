@@ -406,6 +406,8 @@ export const useStatisticsStore = create<StatisticsStore>()(
       clearErrorForKey: (key: string) => {
         const state = get()
         const { [key]: _, ...restErrors } = state.errors
+        // Explicitly mark as used for linting
+        void _
         set({ errors: restErrors })
       },
 

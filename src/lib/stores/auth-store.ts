@@ -298,7 +298,7 @@ export const useAuthStore = create<AuthStore>()(
               // Token expired, try to refresh
               try {
                 await get().refreshTokens()
-              } catch (error) {
+              } catch {
                 // Refresh failed, clear everything
                 get().logout()
               }

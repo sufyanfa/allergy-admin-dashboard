@@ -177,15 +177,17 @@ export function ProductDetails({ product, open, onClose }: ProductDetailsProps) 
                     <label className="font-medium text-muted-foreground">Created</label>
                     <p className="mt-1 flex items-center">
                       <Calendar className="h-4 w-4 mr-1" />
-                      {format(new Date(product.createdAt), 'PPP')}
+                      {product.createdAt ? format(new Date(product.createdAt), 'PPP') : 'N/A'}
                     </p>
                   </div>
-                  <div>
-                    <label className="font-medium text-muted-foreground">Last Updated</label>
-                    <p className="mt-1">
-                      {format(new Date(product.updatedAt), 'PPP')}
-                    </p>
-                  </div>
+                  {product.updatedAt && (
+                    <div>
+                      <label className="font-medium text-muted-foreground">Last Updated</label>
+                      <p className="mt-1">
+                        {format(new Date(product.updatedAt), 'PPP')}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

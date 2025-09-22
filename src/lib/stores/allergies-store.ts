@@ -7,6 +7,7 @@ import {
   ApiResponse
 } from '@/types'
 import apiClient from '@/lib/api/client'
+import { API_ENDPOINTS } from '@/constants'
 
 interface AllergiesState {
   allergies: Allergy[]
@@ -76,7 +77,7 @@ export const useAllergiesStore = create<AllergiesStore>()(
 
         try {
           const response = await apiClient.get<ApiResponse<AllergiesOverviewResponse>>(
-            '/admin/allergies/overview'
+            API_ENDPOINTS.ALLERGIES.OVERVIEW
           )
 
           if (response.success && response.data) {
@@ -120,8 +121,8 @@ export const useAllergiesStore = create<AllergiesStore>()(
           if (severityFilter) params.append('severity', severityFilter)
           if (activeFilter) params.append('active', activeFilter)
 
-          const response = await apiClient.get<ApiResponse<{ allergies: Allergy[], pagination: any }>>(
-            `/admin/allergies?${params.toString()}`
+          const response = await apiClient.get<ApiResponse<{ allergies: Allergy[], pagination: { total: number; limit: number; offset: number; pages: number } }>>(
+            `${API_ENDPOINTS.ALLERGIES.LIST}?${params.toString()}`
           )
 
           if (response.success && response.data) {
@@ -148,7 +149,7 @@ export const useAllergiesStore = create<AllergiesStore>()(
 
         try {
           const response = await apiClient.get<ApiResponse<Allergy>>(
-            `/admin/allergies/${id}`
+            API_ENDPOINTS.ALLERGIES.GET(id)
           )
 
           if (response.success && response.data) {
@@ -176,7 +177,7 @@ export const useAllergiesStore = create<AllergiesStore>()(
 
         try {
           const response = await apiClient.post<ApiResponse<{ allergy: Allergy }>>(
-            '/allergies',
+            API_ENDPOINTS.ALLERGIES.CREATE,
             data
           )
 
@@ -207,7 +208,7 @@ export const useAllergiesStore = create<AllergiesStore>()(
 
         try {
           const response = await apiClient.put<ApiResponse<{ allergy: Allergy }>>(
-            `/allergies/${id}`,
+            API_ENDPOINTS.ALLERGIES.UPDATE(id),
             data
           )
 
@@ -239,7 +240,7 @@ export const useAllergiesStore = create<AllergiesStore>()(
 
         try {
           const response = await apiClient.delete<ApiResponse<void>>(
-            `/allergies/${id}`
+            API_ENDPOINTS.ALLERGIES.DELETE(id)
           )
 
           if (response.success) {

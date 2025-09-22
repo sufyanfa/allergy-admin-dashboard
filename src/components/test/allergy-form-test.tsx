@@ -67,7 +67,7 @@ export function AllergyFormTest() {
     try {
       await fetchAllergiesOverview()
       toast.success('Data refreshed')
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh data')
     }
   }

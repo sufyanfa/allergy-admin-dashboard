@@ -38,7 +38,7 @@ const productSchema = z.object({
   brandEn: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
   subcategory: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal('')),
+  imageUrl: z.string().optional(),
   countryOfOrigin: z.string().optional(),
   dataSource: z.enum(['api', 'manual', 'community']),
 })
@@ -88,29 +88,40 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
   useEffect(() => {
     if (product) {
       form.reset({
-        barcode: product.barcode,
-        nameAr: product.nameAr,
+        barcode: product.barcode || '',
+        nameAr: product.nameAr || '',
         nameEn: product.nameEn || '',
-        brandAr: product.brandAr,
+        brandAr: product.brandAr || '',
         brandEn: product.brandEn || '',
-        category: product.category,
+        category: product.category || '',
         subcategory: product.subcategory || '',
         imageUrl: product.imageUrl || '',
         countryOfOrigin: product.countryOfOrigin || '',
-        dataSource: product.dataSource,
+        dataSource: product.dataSource || 'manual',
       })
 
       if (product.ingredients) {
         setIngredients(
           product.ingredients.map((ing, index) => ({
-            nameAr: ing.nameAr,
-            nameEn: ing.nameEn,
+            nameAr: ing.nameAr || '',
+            nameEn: ing.nameEn || '',
             orderIndex: ing.orderIndex || index
           }))
         )
       }
     } else {
-      form.reset()
+      form.reset({
+        barcode: '',
+        nameAr: '',
+        nameEn: '',
+        brandAr: '',
+        brandEn: '',
+        category: '',
+        subcategory: '',
+        imageUrl: '',
+        countryOfOrigin: '',
+        dataSource: 'manual',
+      })
       setIngredients([])
     }
   }, [product, form])
@@ -142,6 +153,8 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
     try {
       const productData: ProductInput = {
         ...data,
+        // Remove imageUrl if it's empty or invalid to avoid validation error
+        imageUrl: data.imageUrl?.trim() && data.imageUrl.trim() !== '' ? data.imageUrl.trim() : undefined,
         ingredients: ingredients.map((ing, index) => ({
           nameAr: ing.nameAr,
           nameEn: ing.nameEn,
@@ -158,7 +171,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
       }
 
       onClose()
-    } catch (error) {
+    } catch {
       toast.error(product ? 'Failed to update product' : 'Failed to create product')
     } finally {
       setIsSubmitting(false)

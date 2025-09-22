@@ -51,7 +51,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
   useEffect(() => {
     // Initial data fetch - fetch overview which includes allergies
     fetchAllergiesOverview()
-  }, [])
+  }, [fetchAllergiesOverview])
 
   const handleSearch = async () => {
     if (localSearchQuery.trim()) {
@@ -199,10 +199,6 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
           <Button onClick={handleExport} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
-          </Button>
-          <Button onClick={() => {}} variant="outline">
-            <AlertTriangle className="h-4 w-4 mr-2" />
-            Check Allergies
           </Button>
           <Button onClick={handleCreateAllergy}>
             <Plus className="h-4 w-4 mr-2" />
