@@ -21,6 +21,14 @@ const nextConfig = {
         hostname: '*.vercel.app',
       },
     ],
+    // Use default loader for Cloudflare Pages compatibility
+    unoptimized: true,
+  },
+  // Disable server actions for Cloudflare Pages compatibility
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
 }
 
