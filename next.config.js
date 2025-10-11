@@ -16,10 +16,6 @@ const nextConfig = {
         hostname: 'localhost',
         port: '3000',
       },
-      {
-        protocol: 'https',
-        hostname: '*.vercel.app',
-      },
     ],
     // Use default loader for Cloudflare Pages compatibility
     unoptimized: true,
