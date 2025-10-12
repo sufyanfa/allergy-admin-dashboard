@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useRequireAuth } from '@/lib/hooks/use-auth'
 import { Loader2 } from 'lucide-react'
 
@@ -11,6 +12,7 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const [isMounted, setIsMounted] = useState(false)
   const { isAuthenticated, isLoading, isAdmin } = useRequireAuth()
+  const router = useRouter()
 
   useEffect(() => {
     setIsMounted(true)
@@ -41,17 +43,22 @@ export function AuthGuard({ children }: AuthGuardProps) {
     )
   }
 
-  // For debugging: allow access even if not authenticated
-  // if (!isAuthenticated || !isAdmin) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-  //         <p className="text-gray-600 mt-2">Admin privileges required.</p>
-  //       </div>
-  //     </div>
-  //   )
-  // }
+  // Check if user is authenticated and has admin privileges
+  if (!isAuthenticated || !isAdmin) {
+    // Redirect to login with appropriate error
+    const errorParam = !isAuthenticated ? 'unauthenticated' : 'admin_required'
+    router.push(`/auth/login?error=${errorParam}`)
+
+    // Show loading while redirecting
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      </div>
+    )
+  }
 
   return <>{children}</>
 }

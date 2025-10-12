@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,12 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, Loader2, Shield } from 'lucide-react'
 import { isValidEmail, sanitizeInput, loginRateLimiter, otpRateLimiter, setupCSP } from '@/lib/utils/security'
+
+const ERROR_MESSAGES = {
+  admin_required: 'Access denied. Admin privileges are required to access this dashboard.',
+  unauthenticated: 'Please log in to continue.',
+  expired: 'Your session has expired. Please log in again.',
+}
 
 export default function LoginPage() {
   const [step, setStep] = useState<'email' | 'otp'>('email')
@@ -20,6 +26,19 @@ export default function LoginPage() {
 
   const { login } = useAuthStore()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Check for error or expired parameters in URL
+  useEffect(() => {
+    const errorParam = searchParams.get('error')
+    const expiredParam = searchParams.get('expired')
+
+    if (errorParam && errorParam in ERROR_MESSAGES) {
+      setError(ERROR_MESSAGES[errorParam as keyof typeof ERROR_MESSAGES])
+    } else if (expiredParam === 'true') {
+      setError(ERROR_MESSAGES.expired)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     setupCSP()

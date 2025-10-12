@@ -116,6 +116,10 @@ class ApiClient {
       if (expiry) {
         localStorage.setItem('admin_token_expiry', expiry.toString())
       }
+
+      // Also set as cookie for server-side middleware validation
+      const expiryDate = expiry ? new Date(expiry) : new Date(Date.now() + 3600000)
+      document.cookie = `admin_token=${token}; path=/; expires=${expiryDate.toUTCString()}; secure; samesite=strict`
     }
   }
 
@@ -125,6 +129,9 @@ class ApiClient {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_token_expiry')
+
+      // Clear the cookie
+      document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict'
     }
   }
 
