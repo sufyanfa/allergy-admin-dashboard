@@ -152,7 +152,11 @@ export function ProductDetails({ product, open, onClose }: ProductDetailsProps) 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <label className="font-medium text-muted-foreground">Barcode</label>
-                    <p className="font-mono mt-1">{product.barcode}</p>
+                    <p className="font-mono mt-1 text-base">
+                      {product.barcode || (
+                        <span className="text-muted-foreground italic font-sans">Not available</span>
+                      )}
+                    </p>
                   </div>
                   <div>
                     <label className="font-medium text-muted-foreground">Confidence Score</label>

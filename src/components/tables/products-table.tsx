@@ -111,7 +111,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
     return 'text-red-600'
   }
 
-  if (isLoading && products.length === 0) {
+  if (isLoading && (!products || products.length === 0)) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -124,7 +124,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
     )
   }
 
-  if (!isLoading && products.length === 0) {
+  if (!isLoading && (!products || products.length === 0)) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -147,23 +147,32 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
           <CardTitle>Products ({products.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Brand</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Barcode</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Confidence</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => (
+          <div className="relative">
+            {isLoading && products.length > 0 && (
+              <div className="absolute inset-0 bg-white/80 dark:bg-gray-950/80 z-10 flex items-center justify-center rounded-md">
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Loading products...</span>
+                </div>
+              </div>
+            )}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Brand</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Barcode</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Confidence</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
@@ -204,7 +213,9 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                     </TableCell>
                     <TableCell>
                       <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {product.barcode}
+                        {product.barcode || (
+                          <span className="text-muted-foreground not-italic">N/A</span>
+                        )}
                       </code>
                     </TableCell>
                     <TableCell>{getDataSourceBadge(product.dataSource)}</TableCell>
@@ -281,9 +292,10 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
               </TableBody>
             </Table>
           </div>
+          </div>
 
           {/* Load More Button */}
-          {hasMore && (
+          {hasMore ? (
             <div className="flex justify-center mt-4">
               <Button
                 onClick={onLoadMore}
@@ -300,6 +312,15 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                 )}
               </Button>
             </div>
+          ) : (
+            products.length > 0 && (
+              <div className="flex justify-center mt-4 py-3">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <Package className="h-4 w-4" />
+                  <span>All products loaded ({products.length} total)</span>
+                </div>
+              </div>
+            )
           )}
         </CardContent>
       </Card>

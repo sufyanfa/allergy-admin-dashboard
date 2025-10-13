@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,7 @@ const ERROR_MESSAGES = {
   expired: 'Your session has expired. Please log in again.',
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const [step, setStep] = useState<'email' | 'otp'>('email')
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
@@ -244,5 +244,17 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

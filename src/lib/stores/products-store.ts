@@ -9,7 +9,6 @@ import {
   ProductSearchResult,
   ProductsOverview,
   ProductsOverviewResponse,
-  PaginatedResponse,
   ApiResponse
 } from '@/types'
 import { API_ENDPOINTS } from '@/constants'
@@ -22,6 +21,7 @@ interface ProductsState {
   searchResults: ProductSearchResult | null
   overview: ProductsOverview | null
   isLoading: boolean
+  isSearching: boolean
   error: string | null
   filters: ProductSearchFilters
   pagination: {
@@ -86,6 +86,7 @@ export const useProductsStore = create<ProductsStore>()(
       searchResults: null,
       overview: null,
       isLoading: false,
+      isSearching: false,
       error: null,
       filters: initialFilters,
       pagination: {
@@ -98,27 +99,37 @@ export const useProductsStore = create<ProductsStore>()(
 
       // Actions
       fetchProducts: async (page = 1, limit = 20) => {
-        set({ isLoading: true, error: null })
+        set({ isSearching: true, error: null })
 
         try {
-          const response = await apiClient.get<PaginatedResponse<Product>>(
-            `${API_ENDPOINTS.PRODUCTS.LIST}?page=${page}&limit=${limit}`
+          const offset = (page - 1) * limit
+          const response = await apiClient.get<ApiResponse<ProductsOverviewResponse>>(
+            `/admin/products/overview?offset=${offset}&limit=${limit}`
           )
 
-          if (response.success) {
-            set({
-              products: response.data.items,
-              pagination: response.data.pagination,
-              isLoading: false
-            })
+          if (response.success && response.data) {
+            const { products: newProducts, pagination } = response.data
+
+            set((state) => ({
+              products: page === 1 ? newProducts : [...state.products, ...newProducts],
+              pagination: {
+                page: Math.floor(pagination.offset / pagination.limit) + 1,
+                limit: pagination.limit,
+                total: pagination.total,
+                pages: pagination.pages,
+                hasMore: pagination.offset + pagination.limit < pagination.total
+              },
+              isSearching: false
+            }))
           } else {
             throw new Error(response.message || 'Failed to fetch products')
           }
         } catch (error: unknown) {
+          console.error('❌ Load More Error:', error)
           const message = (error as Error)?.message || 'Failed to fetch products'
           set({
             error: message,
-            isLoading: false
+            isSearching: false
           })
           throw error
         }
@@ -134,6 +145,7 @@ export const useProductsStore = create<ProductsStore>()(
 
           if (response.success && response.data) {
             const { overview, categories, products, pagination } = response.data
+
             set({
               overview,
               products,
@@ -158,6 +170,7 @@ export const useProductsStore = create<ProductsStore>()(
             throw new Error(response.message || 'Failed to fetch products overview')
           }
         } catch (error: unknown) {
+          console.error('❌ Products Overview Error:', error)
           const message = (error as Error)?.message || 'Failed to fetch products overview'
           set({
             error: message,
@@ -286,7 +299,7 @@ export const useProductsStore = create<ProductsStore>()(
       },
 
       searchProducts: async (filters) => {
-        set({ isLoading: true, error: null, filters })
+        set({ isSearching: true, error: null, filters })
 
         try {
           const params = new URLSearchParams()
@@ -304,7 +317,7 @@ export const useProductsStore = create<ProductsStore>()(
             set({
               searchResults: response.data,
               products: response.data.products,
-              isLoading: false
+              isSearching: false
             })
           } else {
             throw new Error(response.message || 'Failed to search products')
@@ -313,36 +326,49 @@ export const useProductsStore = create<ProductsStore>()(
           const message = (error as Error)?.message || 'Failed to search products'
           set({
             error: message,
-            isLoading: false
+            isSearching: false
           })
           throw error
         }
       },
 
       searchIntegrated: async (query: string) => {
-        set({ isLoading: true, error: null })
+        set({ isSearching: true, error: null })
 
         try {
-          const response = await apiClient.get<ApiResponse<ProductSearchResult>>(
-            `${API_ENDPOINTS.PRODUCTS.SEARCH}?q=${encodeURIComponent(query)}`
+          const response = await apiClient.get<ApiResponse<any>>(
+            `${API_ENDPOINTS.PRODUCTS.SEARCH}?search=${encodeURIComponent(query)}`
           )
 
           if (response.success && response.data) {
-            const results = response.data
+            // Handle the API response structure: { results: [...], totalFound: number }
+            const apiData = response.data
+            const products = apiData.results
+              ? apiData.results.map((item: any) => item.product || item)
+              : []
+
+            const searchResults: ProductSearchResult = {
+              products,
+              totalCount: apiData.totalFound || products.length,
+              brands: Array.from(new Set(products.map((p: Product) => p.brandAr || p.brandEn).filter(Boolean))),
+              categories: Array.from(new Set(products.map((p: Product) => p.category).filter(Boolean)))
+            }
+
             set({
-              searchResults: results,
-              products: results.products,
-              isLoading: false
+              searchResults,
+              products,
+              isSearching: false
             })
-            return results
+            return searchResults
           } else {
             throw new Error(response.message || 'Failed to search products')
           }
         } catch (error: unknown) {
+          console.error('❌ Search Error:', error)
           const message = (error as Error)?.message || 'Failed to search products'
           set({
             error: message,
-            isLoading: false
+            isSearching: false
           })
           throw error
         }

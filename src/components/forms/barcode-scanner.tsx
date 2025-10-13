@@ -215,17 +215,6 @@ export function BarcodeScanner({ open, onClose, onScan }: BarcodeScannerProps) {
               </CardContent>
             </Card>
           )}
-
-          {/* Tips */}
-          <div className="bg-muted/50 rounded-lg p-4">
-            <h4 className="font-medium text-sm mb-2">Scanning Tips:</h4>
-            <ul className="text-xs text-muted-foreground space-y-1">
-              <li>• Make sure the barcode is clearly visible and well-lit</li>
-              <li>• Try different angles if the scan does not work initially</li>
-              <li>• For damaged barcodes, try manual entry</li>
-              <li>• Most product barcodes are 12-13 digits long</li>
-            </ul>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -14,6 +14,7 @@ import { ProductForm } from '@/components/forms/product-form'
 import { BarcodeScanner } from '@/components/forms/barcode-scanner'
 import { ProductFilters } from '@/components/forms/product-filters'
 import { cn } from '@/lib/utils'
+import { ProductCategory } from '@/types'
 
 interface ProductsOverviewProps {
   className?: string
@@ -25,6 +26,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
     categories,
     searchResults,
     isLoading,
+    isSearching,
     error,
     filters,
     pagination,
@@ -46,12 +48,15 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
   useEffect(() => {
     // Initial data fetch - fetch overview which includes products
     fetchProductsOverview()
-  }, [fetchProductsOverview])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const handleSearch = async () => {
-    if (searchQuery.trim()) {
+  const handleSearch = async (query?: string) => {
+    const searchTerm = query !== undefined ? query : searchQuery
+
+    if (searchTerm.trim()) {
       try {
-        await searchIntegrated(searchQuery.trim())
+        await searchIntegrated(searchTerm.trim())
       } catch (error) {
         console.error('Search failed:', error)
       }
@@ -120,12 +125,15 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
   }
 
   // Transform data for charts
-  const categoriesChartData = categories?.slice(0, 8).map((item: { name?: string; category?: string; count: number }, index: number) => ({
-    label: item.name || item.category || 'Unknown',
-    value: item.count || 0,
-    percentage: overview?.totalProducts ? (item.count / overview.totalProducts * 100) : 0,
-    color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'][index % 8]
-  })) || null
+  const categoriesChartData = categories?.slice(0, 8).map((item, index) => {
+    const categoryItem = item as ProductCategory & { name?: string; count?: number }
+    return {
+      label: categoryItem.nameAr || categoryItem.name || 'Unknown',
+      value: categoryItem.count || 0,
+      percentage: overview?.totalProducts ? ((categoryItem.count || 0) / overview.totalProducts * 100) : 0,
+      color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'][index % 8]
+    }
+  }) || null
 
   // Data sources chart will be removed for now as data structure is not available
   const dataSourcesChartData = null
@@ -141,19 +149,19 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button onClick={handleRefresh} variant="outline" size="sm">
+          <Button type="button" onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={handleExport} variant="outline" size="sm">
+          <Button type="button" onClick={handleExport} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button onClick={() => setShowScanner(true)} variant="outline">
+          <Button type="button" onClick={() => setShowScanner(true)} variant="outline">
             <ScanLine className="h-4 w-4 mr-2" />
             Scan Barcode
           </Button>
-          <Button onClick={() => setShowForm(true)}>
+          <Button type="button" onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
@@ -166,7 +174,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <p className="text-red-600">{error}</p>
-              <Button onClick={clearError} variant="ghost" size="sm">
+              <Button type="button" onClick={clearError} variant="ghost" size="sm">
                 Dismiss
               </Button>
             </div>
@@ -237,28 +245,50 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
       {/* Search and Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleSearch()
+              return false
+            }}
+            className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4"
+          >
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
+                  type="text"
                   placeholder="Search products, brands, or barcodes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-10"
+                  autoComplete="off"
                 />
               </div>
             </div>
             <div className="flex space-x-2">
-              <Button onClick={handleSearch} size="sm">
-                <Search className="h-4 w-4 mr-2" />
-                Search
+              <Button type="submit" size="sm" disabled={isSearching}>
+                {isSearching ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Search
+                  </>
+                )}
               </Button>
               <Button
-                onClick={() => setShowFilters(!showFilters)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setShowFilters(!showFilters)
+                }}
                 variant="outline"
                 size="sm"
+                type="button"
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
@@ -269,7 +299,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
                 )}
               </Button>
             </div>
-          </div>
+          </form>
 
           {showFilters && (
             <div className="mt-4 pt-4 border-t">
@@ -295,10 +325,10 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Found {searchResults.totalCount} products
+                  Found {searchResults.totalCount || 0} products
                   {searchQuery && ` for "${searchQuery}"`}
                 </p>
-                {searchResults.brands.length > 0 && (
+                {searchResults.brands && searchResults.brands.length > 0 && (
                   <div className="mt-2">
                     <p className="text-xs text-muted-foreground mb-1">Brands found:</p>
                     <div className="flex flex-wrap gap-1">
@@ -317,6 +347,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
                 )}
               </div>
               <Button
+                type="button"
                 onClick={() => {
                   setSearchQuery('')
                   fetchProductsOverview()
@@ -334,7 +365,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
       {/* Products Table */}
       <ProductsTable
         products={products}
-        isLoading={isLoading}
+        isLoading={isSearching}
         onLoadMore={handleLoadMore}
         hasMore={pagination.hasMore}
       />
@@ -354,7 +385,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
           onClose={() => setShowScanner(false)}
           onScan={(barcode) => {
             setSearchQuery(barcode)
-            handleSearch()
+            handleSearch(barcode)
           }}
         />
       )}

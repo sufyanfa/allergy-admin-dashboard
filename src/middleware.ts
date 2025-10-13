@@ -14,7 +14,7 @@ export const config = {
      */
     '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
   ],
-  runtime: 'edge',
+  runtime: 'experimental-edge',
 }
 
 const PROTECTED_ROUTES = ['/dashboard', '/users', '/products', '/allergies']

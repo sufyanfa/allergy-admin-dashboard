@@ -102,14 +102,14 @@ export function ProductFilters({
             <div className="space-y-2">
               <Label htmlFor="category-filter">Category</Label>
               <Select
-                value={localFilters.category || ''}
-                onValueChange={(value) => handleFilterChange('category', value)}
+                value={localFilters.category || 'all'}
+                onValueChange={(value) => handleFilterChange('category', value === 'all' ? '' : value)}
               >
                 <SelectTrigger id="category-filter">
                   <SelectValue placeholder="All categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All categories</SelectItem>
+                  <SelectItem value="all">All categories</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.nameEn}>
                       {category.nameEn} - {category.nameAr}
@@ -134,14 +134,14 @@ export function ProductFilters({
             <div className="space-y-2">
               <Label htmlFor="source-filter">Data Source</Label>
               <Select
-                value={localFilters.dataSource || ''}
-                onValueChange={(value) => handleFilterChange('dataSource', value)}
+                value={localFilters.dataSource || 'all'}
+                onValueChange={(value) => handleFilterChange('dataSource', value === 'all' ? '' : value)}
               >
                 <SelectTrigger id="source-filter">
                   <SelectValue placeholder="All sources" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All sources</SelectItem>
+                  <SelectItem value="all">All sources</SelectItem>
                   <SelectItem value="api">API Import</SelectItem>
                   <SelectItem value="manual">Manual Entry</SelectItem>
                   <SelectItem value="community">Community Sourced</SelectItem>
@@ -153,16 +153,16 @@ export function ProductFilters({
             <div className="space-y-2">
               <Label htmlFor="verified-filter">Verification Status</Label>
               <Select
-                value={localFilters.verified === undefined ? '' : localFilters.verified.toString()}
+                value={localFilters.verified === undefined ? 'all' : localFilters.verified.toString()}
                 onValueChange={(value) =>
-                  handleFilterChange('verified', value === '' ? undefined : value === 'true')
+                  handleFilterChange('verified', value === 'all' ? undefined : value === 'true')
                 }
               >
                 <SelectTrigger id="verified-filter">
                   <SelectValue placeholder="All products" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All products</SelectItem>
+                  <SelectItem value="all">All products</SelectItem>
                   <SelectItem value="true">Verified only</SelectItem>
                   <SelectItem value="false">Unverified only</SelectItem>
                 </SelectContent>
@@ -173,16 +173,16 @@ export function ProductFilters({
             <div className="space-y-2">
               <Label htmlFor="allergen-filter">Allergen Status</Label>
               <Select
-                value={localFilters.hasAllergens === undefined ? '' : localFilters.hasAllergens.toString()}
+                value={localFilters.hasAllergens === undefined ? 'all' : localFilters.hasAllergens.toString()}
                 onValueChange={(value) =>
-                  handleFilterChange('hasAllergens', value === '' ? undefined : value === 'true')
+                  handleFilterChange('hasAllergens', value === 'all' ? undefined : value === 'true')
                 }
               >
                 <SelectTrigger id="allergen-filter">
                   <SelectValue placeholder="All products" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All products</SelectItem>
+                  <SelectItem value="all">All products</SelectItem>
                   <SelectItem value="true">Contains allergens</SelectItem>
                   <SelectItem value="false">No allergens</SelectItem>
                 </SelectContent>
