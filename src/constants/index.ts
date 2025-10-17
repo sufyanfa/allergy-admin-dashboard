@@ -31,6 +31,13 @@ export const API_ENDPOINTS = {
     CHECK_ALLERGIES: (id: string) => `/products/${id}/check-allergies`,
     BY_BARCODE: (barcode: string) => `/products/barcode/${barcode}`,
   },
+  CONTRIBUTIONS: {
+    OVERVIEW: '/admin/contributions/overview',
+    GET: (id: string) => `/admin/contributions/${id}`,
+    UPDATE: (id: string) => `/admin/contributions/${id}`,
+    UPDATE_STATUS: (id: string) => `/admin/contributions/${id}/status`,
+    BULK_UPDATE: '/admin/contributions/bulk-update',
+  },
   STATISTICS: {
     OVERVIEW: '/admin/dashboard/overview',
     KEY_METRICS: '/admin/dashboard/overview',
@@ -88,6 +95,11 @@ export const NAVIGATION_ITEMS = [
     title: 'Allergies',
     href: '/allergies',
     icon: 'AlertTriangle',
+  },
+  {
+    title: 'Contributions',
+    href: '/contributions',
+    icon: 'GitPullRequest',
   },
 ] as const
 

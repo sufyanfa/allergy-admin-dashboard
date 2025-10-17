@@ -439,3 +439,105 @@ export interface SystemHealthApiResponse {
   }
 }
 
+// Contribution Types
+export type ContributionStatus = 'pending' | 'approved' | 'rejected'
+export type ContributionType = 'new_product' | 'edit_ingredients' | 'add_image' | 'report_error'
+
+export interface ContributionData {
+  barcode?: string
+  frontImageUrl?: string
+  ingredientsImageUrl?: string
+  extractedIngredientsAr?: string
+  extractedIngredientsEn?: string
+  productNameAr?: string
+  productNameEn?: string
+  brandAr?: string
+  brandEn?: string
+  category?: string
+  aiConfidence?: number
+  // For edit_ingredients type
+  newIngredientsAr?: string
+  newIngredientsEn?: string
+  // For report_error type
+  reportDescription?: string
+  reportType?: string
+  // For add_image type
+  imageType?: 'front' | 'ingredients' | 'nutrition'
+  imageUrl?: string
+}
+
+export interface Contribution {
+  id: string
+  userId: string
+  productId: string | null
+  contributionType: ContributionType
+  contributionData: ContributionData
+  status: ContributionStatus
+  reviewedBy: string | null
+  reviewedAt: string | null
+  notes: string | null
+  createdAt: string
+  user: {
+    id: string
+    name: string
+    username: string
+  }
+  product: {
+    id: string
+    nameAr: string
+    nameEn: string
+    barcode: string
+  } | null
+}
+
+export interface ContributionsOverview {
+  totalContributions: number
+  pendingContributions: number
+  approvedContributions: number
+  rejectedContributions: number
+  typeDistribution: Array<{ type: string; count: number }>
+}
+
+export interface ContributionsFilters {
+  search?: string
+  status?: ContributionStatus
+  contributionType?: ContributionType
+  userId?: string
+  limit?: number
+  offset?: number
+}
+
+export interface ContributionsOverviewResponse {
+  overview: ContributionsOverview
+  contributions: Contribution[]
+  pagination: {
+    total: number
+    limit: number
+    offset: number
+    pages: number
+  }
+}
+
+export interface ContributionStatusUpdate {
+  status: ContributionStatus
+  notes?: string
+}
+
+export interface ContributionStatusUpdateResponse {
+  contributionId: string
+  productId: string | null
+}
+
+export interface BulkUpdateRequest {
+  contributionIds: string[]
+  status: ContributionStatus
+  notes?: string
+}
+
+export interface BulkUpdateResponse {
+  succeeded: number
+  failed: number
+  errors: Array<{ id: string; error: string }>
+  productIds: string[]
+}
+
