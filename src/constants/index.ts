@@ -106,7 +106,9 @@ export const NAVIGATION_ITEMS = [
 // User Roles and Permissions
 export const USER_ROLES = {
   USER: 'user',
-  PREMIUM: 'premium',
+  COMPANY: 'company',
+  DOCTOR: 'doctor',
+  HOSPITAL: 'hospital',
   ADMIN: 'admin',
 } as const
 
@@ -114,5 +116,63 @@ export const USER_STATUSES = {
   ACTIVE: 'active',
   INACTIVE: 'inactive',
   SUSPENDED: 'suspended',
+} as const
+
+// RBAC Permission Categories
+export const PERMISSION_CATEGORIES = {
+  PROFILE: 'Profile Management',
+  PRODUCTS: 'Product Management',
+  ALLERGIES: 'Allergy Management',
+  COMMUNITY: 'Community Management',
+  EXPERIMENTS: 'Experiment Management',
+  USERS: 'User Management',
+  SYSTEM: 'System Management',
+} as const
+
+// Permission Descriptions
+export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
+  'profile.read': 'View user profiles',
+  'profile.update': 'Update user profiles',
+  'products.read': 'View products',
+  'products.create': 'Create new products',
+  'products.update': 'Update existing products',
+  'products.delete': 'Delete products',
+  'products.review': 'Review product submissions',
+  'products.approve': 'Approve product submissions',
+  'allergies.read': 'View allergies',
+  'allergies.create': 'Create new allergies',
+  'allergies.update': 'Update existing allergies',
+  'allergies.delete': 'Delete allergies',
+  'community.read': 'View community content',
+  'community.participate': 'Participate in community',
+  'community.moderate': 'Moderate community content',
+  'experiments.read': 'View experiments',
+  'experiments.participate': 'Participate in experiments',
+  'experiments.manage': 'Manage experiments',
+  'users.read': 'View user information',
+  'users.update': 'Update user information',
+  'users.delete': 'Delete users',
+  'users.manage_roles': 'Manage user roles',
+  'system.read': 'View system settings',
+  'system.configure': 'Configure system settings',
+  'system.analytics': 'View system analytics',
+} as const
+
+// Role Display Names
+export const ROLE_DISPLAY_NAMES: Record<string, string> = {
+  user: 'User',
+  company: 'Company',
+  doctor: 'Doctor',
+  hospital: 'Hospital',
+  admin: 'Administrator',
+} as const
+
+// Role Colors (for badges)
+export const ROLE_COLORS: Record<string, string> = {
+  user: 'bg-blue-100 text-blue-800',
+  company: 'bg-purple-100 text-purple-800',
+  doctor: 'bg-green-100 text-green-800',
+  hospital: 'bg-teal-100 text-teal-800',
+  admin: 'bg-red-100 text-red-800',
 } as const
 

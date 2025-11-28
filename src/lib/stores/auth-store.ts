@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User } from '@/types'
+import { User, AppPermission } from '@/types'
 import apiClient from '@/lib/api/client'
 
 interface AuthState {
   user: User | null
+  permissions: AppPermission[]
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       // State
       user: null,
+      permissions: [],
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -82,28 +84,43 @@ export const useAuthStore = create<AuthStore>()(
               throw new Error('No access token received from server')
             }
 
-            // Check if user has admin permissions by looking at JWT permissions
-            // For now, allow 'authenticated' role since the JWT contains admin permissions
-            if (!['admin', 'authenticated'].includes(user.role)) {
-              throw new Error('Access denied. Admin privileges required.')
-            }
+            // Extract permissions from JWT token
+            let extractedPermissions: AppPermission[] = []
+            let userRole = user.role
 
-            // Additional check: decode JWT to verify admin permissions
             if (finalAccessToken) {
               try {
                 const jwtPayload = JSON.parse(atob(finalAccessToken.split('.')[1]))
-                const hasAdminPerms = jwtPayload.permissions && (
-                  jwtPayload.permissions.includes('system.analytics') ||
-                  jwtPayload.permissions.includes('users.manage_roles') ||
-                  jwtPayload.user_role === 'admin'
-                )
-                if (!hasAdminPerms) {
-                  throw new Error('Access denied. Admin privileges required.')
+
+                // Extract permissions from JWT
+                if (jwtPayload.permissions && Array.isArray(jwtPayload.permissions)) {
+                  extractedPermissions = jwtPayload.permissions as AppPermission[]
+                }
+
+                // Extract role from JWT (prefer JWT role over user object role)
+                if (jwtPayload.user_role) {
+                  userRole = jwtPayload.user_role
+                }
+
+                // Update user object with JWT data
+                user = {
+                  ...user,
+                  role: userRole,
+                  permissions: extractedPermissions
                 }
               } catch (jwtError) {
-                console.warn('Could not verify JWT permissions:', jwtError)
-                // Continue if JWT parsing fails - role check above will handle basic validation
+                console.warn('Could not parse JWT token:', jwtError)
               }
+            }
+
+            // Check if user has admin role or admin permissions
+            const isAdmin = userRole === 'admin'
+            const hasAdminPermissions = extractedPermissions.some(p =>
+              p.startsWith('users.') || p.startsWith('system.')
+            )
+
+            if (!isAdmin && !hasAdminPermissions) {
+              throw new Error('Access denied. Admin privileges required.')
             }
 
             // Calculate token expiry time
@@ -121,6 +138,7 @@ export const useAuthStore = create<AuthStore>()(
 
             set({
               user,
+              permissions: extractedPermissions,
               isAuthenticated: true,
               isLoading: false,
               tokenExpiry
@@ -135,6 +153,7 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             isAuthenticated: false,
             user: null,
+            permissions: [],
             tokenExpiry: null
           })
           throw error
@@ -158,6 +177,7 @@ export const useAuthStore = create<AuthStore>()(
 
           set({
             user: null,
+            permissions: [],
             isAuthenticated: false,
             isLoading: false,
             error: null,
@@ -177,16 +197,42 @@ export const useAuthStore = create<AuthStore>()(
           }>('/profiles/me')
 
           if (response.success) {
-            const user = response.data.profile
+            let user = response.data.profile
 
-            // Check if user has admin privileges
-            // Allow 'authenticated' role since admin permissions are in JWT
-            if (!['admin', 'authenticated'].includes(user.role)) {
+            // Extract permissions from current token if available
+            let extractedPermissions: AppPermission[] = user.permissions || []
+            const token = apiClient.getStoredToken()
+
+            if (token && !extractedPermissions.length) {
+              try {
+                const jwtPayload = JSON.parse(atob(token.split('.')[1]))
+                if (jwtPayload.permissions && Array.isArray(jwtPayload.permissions)) {
+                  extractedPermissions = jwtPayload.permissions as AppPermission[]
+                }
+                if (jwtPayload.user_role) {
+                  user = { ...user, role: jwtPayload.user_role }
+                }
+              } catch (jwtError) {
+                console.warn('Could not parse JWT token:', jwtError)
+              }
+            }
+
+            // Check if user has admin role or admin permissions
+            const isAdmin = user.role === 'admin'
+            const hasAdminPermissions = extractedPermissions.some(p =>
+              p.startsWith('users.') || p.startsWith('system.')
+            )
+
+            if (!isAdmin && !hasAdminPermissions) {
               throw new Error('Access denied. Admin privileges required.')
             }
 
+            // Update user object with permissions
+            user = { ...user, permissions: extractedPermissions }
+
             set({
               user,
+              permissions: extractedPermissions,
               isAuthenticated: true,
               isLoading: false
             })
@@ -200,6 +246,7 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             isAuthenticated: false,
             user: null,
+            permissions: [],
             tokenExpiry: null
           })
 
@@ -307,6 +354,7 @@ export const useAuthStore = create<AuthStore>()(
             // State says authenticated but no token, clear state
             set({
               user: null,
+              permissions: [],
               isAuthenticated: false,
               tokenExpiry: null
             })
@@ -315,6 +363,7 @@ export const useAuthStore = create<AuthStore>()(
           console.error('Auth initialization failed:', error)
           set({
             user: null,
+            permissions: [],
             isAuthenticated: false,
             tokenExpiry: null,
             error: 'Authentication initialization failed'
@@ -381,6 +430,7 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             isAuthenticated: false,
             user: null,
+            permissions: [],
             tokenExpiry: null
           })
 
@@ -399,6 +449,7 @@ export const useAuthStore = create<AuthStore>()(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
+        permissions: state.permissions,
         isAuthenticated: state.isAuthenticated,
         tokenExpiry: state.tokenExpiry
       }),

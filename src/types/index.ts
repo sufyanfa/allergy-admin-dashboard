@@ -1,3 +1,46 @@
+// RBAC Types
+export type UserRole = 'user' | 'company' | 'doctor' | 'hospital' | 'admin'
+
+export type AppPermission =
+  | 'profile.read'
+  | 'profile.update'
+  | 'products.read'
+  | 'products.create'
+  | 'products.update'
+  | 'products.delete'
+  | 'products.review'
+  | 'products.approve'
+  | 'allergies.read'
+  | 'allergies.create'
+  | 'allergies.update'
+  | 'allergies.delete'
+  | 'community.read'
+  | 'community.participate'
+  | 'community.moderate'
+  | 'experiments.read'
+  | 'experiments.participate'
+  | 'experiments.manage'
+  | 'users.read'
+  | 'users.update'
+  | 'users.delete'
+  | 'users.manage_roles'
+  | 'system.read'
+  | 'system.configure'
+  | 'system.analytics'
+
+export interface RolePermission {
+  role: UserRole
+  permission: AppPermission
+}
+
+export interface UserPermissionContext {
+  id: string
+  email?: string
+  phone?: string
+  role: UserRole
+  permissions?: AppPermission[]
+}
+
 // User Types
 export interface User {
   id: string
@@ -12,7 +55,7 @@ export interface User {
   location?: string
   language: string
   timezone?: string
-  role: 'user' | 'premium' | 'admin' | 'authenticated'
+  role: UserRole
   status: 'active' | 'inactive' | 'suspended'
   isPublicProfile: boolean
   allowContactViaEmail: boolean
@@ -20,6 +63,7 @@ export interface User {
   emailNotifications: boolean
   pushNotifications: boolean
   allergiesCount?: number
+  permissions?: AppPermission[]
   createdAt: string
   updatedAt: string
 }
@@ -539,5 +583,61 @@ export interface BulkUpdateResponse {
   failed: number
   errors: Array<{ id: string; error: string }>
   productIds: string[]
+}
+
+// RBAC API Response Types
+export interface RolePermissionsResponse {
+  success: boolean
+  data: {
+    role: UserRole
+    permissions: AppPermission[]
+  }
+}
+
+export interface AllRolePermissionsResponse {
+  success: boolean
+  data: {
+    roles: Array<{
+      role: UserRole
+      permissions: AppPermission[]
+      permissionCount: number
+    }>
+  }
+}
+
+export interface UpdateRolePermissionsRequest {
+  role: UserRole
+  permissions: AppPermission[]
+}
+
+export interface AddRolePermissionRequest {
+  role: UserRole
+  permission: AppPermission
+}
+
+export interface RemoveRolePermissionRequest {
+  role: UserRole
+  permission: AppPermission
+}
+
+export interface UpdateUserRoleRequest {
+  userId: string
+  role: UserRole
+}
+
+export interface UserRoleUpdateResponse {
+  success: boolean
+  data: {
+    userId: string
+    role: UserRole
+    permissions: AppPermission[]
+  }
+}
+
+// Permission Checking
+export interface PermissionCheckResult {
+  hasPermission: boolean
+  requiredPermission: AppPermission
+  userPermissions: AppPermission[]
 }
 
