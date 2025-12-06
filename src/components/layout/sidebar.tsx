@@ -10,6 +10,7 @@ import {
   Package,
   AlertTriangle,
   GitPullRequest,
+  TrendingUp,
   LucideIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ const iconMap: Record<string, LucideIcon> = {
   Package,
   AlertTriangle,
   GitPullRequest,
+  TrendingUp,
 }
 
 interface SidebarProps {

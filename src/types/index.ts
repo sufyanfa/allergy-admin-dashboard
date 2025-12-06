@@ -641,3 +641,97 @@ export interface PermissionCheckResult {
   userPermissions: AppPermission[]
 }
 
+// Analytics Types
+export type AnalyticsPeriod = 'all' | 'day' | 'week' | 'month'
+
+export interface AnalyticsSummary {
+  totalSearches: number
+  uniqueProductsSearched: number
+  uniqueSearchQueries: number
+  barcodeSearches: number
+  textSearches: number
+  safeResults: number
+  unsafeResults: number
+}
+
+export interface SearchedProduct {
+  productId: string
+  barcode: string
+  nameAr: string
+  nameEn: string | null
+  brandAr: string
+  brandEn: string | null
+  category: string
+  searchCount: number
+  viewCount: number
+  popularityScore: number
+  imageUrl: string | null
+}
+
+export interface TopSearchQuery {
+  id: string
+  query: string
+  searchCount: number
+  resultFoundCount: number
+  noResultCount: number
+}
+
+export interface AnalyticsDashboardData {
+  summary: AnalyticsSummary
+  mostSearchedProducts: SearchedProduct[]
+  mostPopularProducts: SearchedProduct[]
+  topSearchQueries: TopSearchQuery[]
+}
+
+export interface AnalyticsDashboardResponse {
+  success: boolean
+  data: AnalyticsDashboardData
+}
+
+export interface SearchedProductsResponse {
+  success: boolean
+  data: {
+    products: SearchedProduct[]
+    pagination: {
+      total: number
+      limit: number
+      offset: number
+      hasMore: boolean
+    }
+  }
+}
+
+export interface TopQueriesResponse {
+  success: boolean
+  data: {
+    queries: TopSearchQuery[]
+    pagination: {
+      total: number
+      limit: number
+      offset: number
+      hasMore: boolean
+    }
+  }
+}
+
+export interface ProductAnalyticsData {
+  product: SearchedProduct
+  searchHistory: Array<{
+    date: string
+    count: number
+  }>
+  viewHistory: Array<{
+    date: string
+    count: number
+  }>
+  popularityHistory: Array<{
+    date: string
+    score: number
+  }>
+}
+
+export interface ProductAnalyticsResponse {
+  success: boolean
+  data: ProductAnalyticsData
+}
+

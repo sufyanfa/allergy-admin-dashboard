@@ -72,6 +72,14 @@ export const API_ENDPOINTS = {
       CLEAR_ALL: '/admin/statistics/cache/all',
     },
   },
+  ANALYTICS: {
+    DASHBOARD: '/admin/analytics/dashboard',
+    MOST_SEARCHED: '/admin/analytics/most-searched',
+    MOST_POPULAR: '/admin/analytics/most-popular',
+    TOP_QUERIES: '/admin/analytics/top-queries',
+    SUMMARY: '/admin/analytics/summary',
+    PRODUCT: (productId: string) => `/admin/analytics/products/${productId}`,
+  },
 } as const
 
 // Navigation Menu Items
@@ -100,6 +108,11 @@ export const NAVIGATION_ITEMS = [
     title: 'Contributions',
     href: '/contributions',
     icon: 'GitPullRequest',
+  },
+  {
+    title: 'Analytics',
+    href: '/analytics',
+    icon: 'TrendingUp',
   },
 ] as const
 
