@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { RefreshCw, Download, Search, Filter, Plus, TrendingUp } from 'lucide-react'
 import { UserForm } from '@/components/forms/user-form'
+import { UserRoleSelector } from '@/components/users/user-role-selector'
 import { User } from '@/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -477,24 +478,25 @@ export function UsersOverview({ className }: UsersOverviewProps) {
                   key={user.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-2">
                       <h3 className="font-semibold">{user.name || user.fullName || user.username || 'Unknown User'}</h3>
-                      <Badge variant={getRoleBadge(user.role)}>
-                        {user.role}
-                      </Badge>
                       <Badge variant={getStatusBadge(user.status)}>
                         {user.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mb-2">
                       {user.email || 'No email'} • {user.allergiesCount || 0} allergies
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mb-2">
                       Joined {new Date(user.createdAt).toLocaleDateString()}
                     </p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-muted-foreground">Role:</span>
+                      <UserRoleSelector user={user} disabled={loading} />
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"

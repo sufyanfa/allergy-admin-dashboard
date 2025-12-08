@@ -30,6 +30,7 @@ interface UsersActions {
   createUser: (data: Partial<User>) => Promise<void>
   updateUser: (id: string, data: Partial<User>) => Promise<void>
   updateUserStatus: (id: string, status: 'active' | 'inactive' | 'suspended') => Promise<void>
+  updateUserRole: (userId: string, role: User['role']) => Promise<{ previousRole: string; currentRole: string }>
   deleteUser: (id: string) => Promise<void>
   searchUsers: (query: string) => Promise<void>
   setFilters: (filters: Partial<UsersState['filters']>) => void
@@ -237,6 +238,54 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
 
   updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'suspended') => {
     await get().updateUser(id, { status })
+  },
+
+  updateUserRole: async (userId: string, role: User['role']) => {
+    set({ loading: true, error: null })
+
+    try {
+      const response = await apiClient.patch<ApiResponse<{
+        userId: string
+        previousRole: string
+        currentRole: string
+        updatedAt: string
+        updatedBy: string
+      }>>(`/admin/users/${userId}/role`, { role })
+
+      if (response.success && response.data) {
+        const { users, selectedUser } = get()
+
+        // Update the user in the list
+        set({
+          users: users.map(user =>
+            user.id === userId ? { ...user, role } : user
+          ),
+          selectedUser: selectedUser?.id === userId
+            ? { ...selectedUser, role }
+            : selectedUser,
+          loading: false,
+        })
+
+        // Refresh overview to update role distribution
+        await get().fetchUsersOverview()
+
+        return {
+          previousRole: response.data.previousRole,
+          currentRole: response.data.currentRole
+        }
+      } else {
+        throw new Error(response.message || 'Failed to update user role')
+      }
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
+        || (error as Error)?.message
+        || 'Failed to update user role'
+      set({
+        error: message,
+        loading: false,
+      })
+      throw error
+    }
   },
 
   searchUsers: async (query: string) => {
