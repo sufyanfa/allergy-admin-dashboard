@@ -28,18 +28,21 @@ import { useProductsStore } from '@/lib/stores/products-store'
 import { toast } from 'sonner'
 
 interface ProductDetailsProps {
-  product: Product
+  product: Product | null
   open: boolean
   onClose: () => void
+  isLoading?: boolean
 }
 
-export function ProductDetails({ product, open, onClose }: ProductDetailsProps) {
+export function ProductDetails({ product, open, onClose, isLoading = false }: ProductDetailsProps) {
   const [allergyCheck, setAllergyCheck] = useState<AllergyCheck | null>(null)
   const [isCheckingAllergies, setIsCheckingAllergies] = useState(false)
 
   const { checkProductAllergies } = useProductsStore()
 
   const handleAllergyCheck = async () => {
+    if (!product) return
+
     setIsCheckingAllergies(true)
     try {
       const result = await checkProductAllergies(product.id)
@@ -82,12 +85,21 @@ export function ProductDetails({ product, open, onClose }: ProductDetailsProps) 
           <DialogTitle className="flex items-center">
             <Package className="h-5 w-5 mr-2" />
             Product Details
+            {isLoading && (
+              <Loader2 className="h-4 w-4 ml-2 animate-spin text-muted-foreground" />
+            )}
           </DialogTitle>
           <DialogDescription>
-            Complete information about {product.nameAr}
+            {product ? `Complete information about ${product.nameAr}` : 'Product details'}
           </DialogDescription>
         </DialogHeader>
 
+        {!product ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-muted-foreground">Loading product details...</span>
+          </div>
+        ) : (
         <div className="space-y-6">
           {/* Product Header */}
           <Card>
@@ -123,7 +135,7 @@ export function ProductDetails({ product, open, onClose }: ProductDetailsProps) 
                       <Badge variant="secondary">{product.subcategory}</Badge>
                     )}
                     <Badge className={getDataSourceColor(product.dataSource)}>
-                      {product.dataSource.toUpperCase()}
+                      {product.dataSource?.toUpperCase() || 'UNKNOWN'}
                     </Badge>
                     {product.verified ? (
                       <Badge variant="default">
@@ -160,8 +172,8 @@ export function ProductDetails({ product, open, onClose }: ProductDetailsProps) 
                   </div>
                   <div>
                     <label className="font-medium text-muted-foreground">Confidence Score</label>
-                    <p className={`mt-1 font-medium ${getConfidenceColor(product.confidenceScore)}`}>
-                      {product.confidenceScore}%
+                    <p className={`mt-1 font-medium ${getConfidenceColor(product.confidenceScore || 0)}`}>
+                      {product.confidenceScore ?? 0}%
                     </p>
                   </div>
                   {product.countryOfOrigin && (
@@ -175,7 +187,7 @@ export function ProductDetails({ product, open, onClose }: ProductDetailsProps) 
                   )}
                   <div>
                     <label className="font-medium text-muted-foreground">Data Source</label>
-                    <p className="mt-1">{product.dataSource}</p>
+                    <p className="mt-1">{product.dataSource || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="font-medium text-muted-foreground">Created</label>
@@ -356,6 +368,7 @@ export function ProductDetails({ product, open, onClose }: ProductDetailsProps) 
             )}
           </div>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   )

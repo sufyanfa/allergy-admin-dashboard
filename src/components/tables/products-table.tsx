@@ -3,25 +3,13 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import {
-  MoreHorizontal,
   Edit,
   Trash2,
   Eye,
-  Shield,
-  ShieldCheck,
-  AlertTriangle,
   Package,
   Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -61,8 +49,9 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
   const [showEditForm, setShowEditForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-  const { categories, deleteProduct } = useProductsStore()
+  const { categories, deleteProduct, fetchProduct } = useProductsStore()
 
   const handleDeleteClick = (product: Product) => {
     setProductToDelete(product)
@@ -87,9 +76,30 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
     setShowEditForm(true)
   }
 
-  const handleView = (product: Product) => {
+  const handleView = async (product: Product) => {
+    // Set the basic product first so we have something to show
     setSelectedProduct(product)
     setShowDetails(true)
+    setIsLoadingDetails(true)
+
+    try {
+      // Fetch full product details including ingredients
+      const fullProduct = await fetchProduct(product.id)
+      console.log('✅ Fetched full product:', fullProduct)
+
+      // Only update if we got valid data
+      if (fullProduct && fullProduct.id) {
+        setSelectedProduct(fullProduct)
+      } else {
+        console.warn('⚠️ Full product data is invalid, keeping basic info')
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch product details:', error)
+      toast.error('Failed to load full product details')
+      // Keep showing the basic product info even if full fetch fails
+    } finally {
+      setIsLoadingDetails(false)
+    }
   }
 
   const getDataSourceBadge = (dataSource: string) => {
@@ -103,12 +113,6 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
         {dataSource.toUpperCase()}
       </Badge>
     )
-  }
-
-  const getConfidenceColor = (score: number) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
   }
 
   if (isLoading && (!products || products.length === 0)) {
@@ -165,9 +169,6 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                     <TableHead>Category</TableHead>
                     <TableHead>Barcode</TableHead>
                     <TableHead>Source</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Confidence</TableHead>
-                    <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -180,13 +181,19 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                           <img
                             src={product.imageUrl}
                             alt={product.nameAr}
-                            className="h-10 w-10 rounded-md object-cover"
+                            className="h-12 w-12 rounded-md object-cover border border-gray-200"
+                            onError={(e) => {
+                              // If image fails to load, show placeholder
+                              const target = e.target as HTMLImageElement
+                              target.style.display = 'none'
+                              const placeholder = target.nextElementSibling as HTMLElement
+                              if (placeholder) placeholder.style.display = 'flex'
+                            }}
                           />
-                        ) : (
-                          <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
-                            <Package className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        )}
+                        ) : null}
+                        <div className={`h-12 w-12 rounded-md bg-muted flex items-center justify-center border border-gray-200 ${product.imageUrl ? 'hidden' : ''}`}>
+                          <Package className="h-6 w-6 text-muted-foreground" />
+                        </div>
                         <div>
                           <div className="font-medium">{product.nameAr}</div>
                           {product.nameEn && (
@@ -219,73 +226,36 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                       </code>
                     </TableCell>
                     <TableCell>{getDataSourceBadge(product.dataSource)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {product.verified ? (
-                          <Badge variant="default" className="text-xs">
-                            <ShieldCheck className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs">
-                            <Shield className="h-3 w-3 mr-1" />
-                            Pending
-                          </Badge>
-                        )}
-                        {product.ingredients?.some(i => i.isAllergen) && (
-                          <Badge variant="destructive" className="text-xs">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Allergens
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className={getConfidenceColor(product.confidenceScore)}>
-                        {product.confidenceScore}%
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {product.createdAt ? (
-                        <>
-                          <div className="text-sm">
-                            {format(new Date(product.createdAt), 'MMM dd, yyyy')}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {format(new Date(product.createdAt), 'HH:mm')}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">N/A</div>
-                      )}
-                    </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleView(product)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(product)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Product
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteClick(product)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Product
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleView(product)}
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(product)}
+                          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          title="Edit Product"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(product)}
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -326,7 +296,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
       </Card>
 
       {/* Product Details Modal */}
-      {selectedProduct && showDetails && (
+      {showDetails && (
         <ProductDetails
           product={selectedProduct}
           open={showDetails}
@@ -334,6 +304,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
             setShowDetails(false)
             setSelectedProduct(null)
           }}
+          isLoading={isLoadingDetails}
         />
       )}
 

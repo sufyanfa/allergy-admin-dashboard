@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, X, Loader2 } from 'lucide-react'
+import { Plus, X, Loader2, Package } from 'lucide-react'
 import { Product, ProductInput, ProductCategory } from '@/types'
 import { useProductsStore } from '@/lib/stores/products-store'
 import { toast } from 'sonner'
@@ -145,6 +145,12 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
 
   const handleRemoveIngredient = (index: number) => {
     setIngredients(ingredients.filter((_, i) => i !== index))
+  }
+
+  const handleUpdateIngredient = (index: number, field: 'nameAr' | 'nameEn', value: string) => {
+    const updated = [...ingredients]
+    updated[index] = { ...updated[index], [field]: value }
+    setIngredients(updated)
   }
 
   const onSubmit = async (data: ProductFormData) => {
@@ -386,71 +392,101 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Ingredients</CardTitle>
+                <FormDescription>
+                  Add and manage product ingredients. You can edit each ingredient after adding.
+                </FormDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Add Ingredient Form */}
-                <div className="border rounded-lg p-4 bg-muted/50">
-                  <h4 className="font-medium mb-3">Add Ingredient</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
+                  <h4 className="font-medium mb-3 text-blue-900">Add New Ingredient</h4>
+                  <div className="flex flex-col md:flex-row gap-3">
                     <Input
-                      placeholder="Arabic name"
+                      placeholder="اسم المكون بالعربية *"
                       value={newIngredient.nameAr}
                       onChange={(e) =>
                         setNewIngredient(prev => ({ ...prev, nameAr: e.target.value }))
                       }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAddIngredient()
+                        }
+                      }}
                       dir="rtl"
+                      className="flex-1"
                     />
                     <Input
-                      placeholder="English name"
+                      placeholder="Ingredient name in English"
                       value={newIngredient.nameEn}
                       onChange={(e) =>
                         setNewIngredient(prev => ({ ...prev, nameEn: e.target.value }))
                       }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAddIngredient()
+                        }
+                      }}
+                      className="flex-1"
                     />
                     <Button
                       type="button"
                       onClick={handleAddIngredient}
                       disabled={!newIngredient.nameAr.trim()}
-                      size="sm"
+                      className="md:w-auto w-full"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      Add
+                      Add Ingredient
                     </Button>
                   </div>
                 </div>
 
                 {/* Ingredients List */}
-                {ingredients.length > 0 && (
+                {ingredients.length > 0 ? (
                   <div className="space-y-2">
-                    <h4 className="font-medium">Ingredients List</h4>
+                    <h4 className="font-medium">Ingredients List ({ingredients.length})</h4>
                     <div className="space-y-2">
                       {ingredients.map((ingredient, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-3 border rounded-lg"
+                          className="flex items-center gap-3 p-3 border rounded-lg bg-white"
                         >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-sm font-medium">{index + 1}.</span>
-                            <div>
-                              <div className="font-medium">{ingredient.nameAr}</div>
-                              {ingredient.nameEn && (
-                                <div className="text-sm text-muted-foreground">
-                                  {ingredient.nameEn}
-                                </div>
-                              )}
-                            </div>
+                          <span className="text-sm font-medium w-6">{index + 1}.</span>
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <Input
+                              placeholder="Arabic name *"
+                              value={ingredient.nameAr}
+                              onChange={(e) => handleUpdateIngredient(index, 'nameAr', e.target.value)}
+                              dir="rtl"
+                              className="text-sm"
+                            />
+                            <Input
+                              placeholder="English name"
+                              value={ingredient.nameEn}
+                              onChange={(e) => handleUpdateIngredient(index, 'nameEn', e.target.value)}
+                              className="text-sm"
+                            />
                           </div>
                           <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
+                            size="icon"
                             onClick={() => handleRemoveIngredient(index)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Remove ingredient"
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
                     </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No ingredients added yet</p>
+                    <p className="text-sm">Use the form above to add ingredients</p>
                   </div>
                 )}
               </CardContent>

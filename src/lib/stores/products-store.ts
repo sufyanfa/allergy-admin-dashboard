@@ -184,21 +184,29 @@ export const useProductsStore = create<ProductsStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await apiClient.get<ApiResponse<Product>>(
+          console.log('🔍 Fetching product with ID:', id)
+          const response = await apiClient.get<ApiResponse<{ product: Product }>>(
             API_ENDPOINTS.PRODUCTS.GET(id)
           )
 
+          console.log('📦 API Response:', response)
+
           if (response.success && response.data) {
-            const product = response.data
+            // Backend returns { data: { product: {...} } }, so unwrap it
+            const product = response.data.product || response.data as any
+            console.log('✅ Product data:', product)
+            console.log('📋 Has ingredients?', product.ingredients?.length || 0, 'ingredients')
             set({
               currentProduct: product,
               isLoading: false
             })
             return product
           } else {
+            console.error('❌ API returned success=false or no data:', response)
             throw new Error(response.message || 'Failed to fetch product')
           }
         } catch (error: unknown) {
+          console.error('❌ Error fetching product:', error)
           const message = (error as Error)?.message || 'Failed to fetch product'
           set({
             error: message,
