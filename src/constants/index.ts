@@ -86,31 +86,37 @@ export const API_ENDPOINTS = {
 export const NAVIGATION_ITEMS = [
   {
     title: 'Dashboard',
+    translationKey: 'dashboard',
     href: '/dashboard',
     icon: 'BarChart3',
   },
   {
     title: 'Users',
+    translationKey: 'users',
     href: '/users',
     icon: 'Users',
   },
   {
     title: 'Products',
+    translationKey: 'products',
     href: '/products',
     icon: 'Package',
   },
   {
     title: 'Allergies',
+    translationKey: 'allergies',
     href: '/allergies',
     icon: 'AlertTriangle',
   },
   {
     title: 'Contributions',
+    translationKey: 'contributions',
     href: '/contributions',
     icon: 'GitPullRequest',
   },
   {
     title: 'Analytics',
+    translationKey: 'analytics',
     href: '/analytics',
     icon: 'TrendingUp',
   },

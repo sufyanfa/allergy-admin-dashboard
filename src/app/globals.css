@@ -117,5 +117,44 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-rubik), sans-serif;
+  }
+
+  /* RTL Support */
+  [dir="rtl"] {
+    direction: rtl;
+  }
+
+  [dir="ltr"] {
+    direction: ltr;
+  }
+
+  /* RTL-aware spacing utilities */
+  [dir="rtl"] .ms-auto {
+    margin-inline-start: auto;
+  }
+
+  [dir="rtl"] .me-auto {
+    margin-inline-end: auto;
+  }
+
+  /* RTL-aware text alignment */
+  [dir="rtl"] .text-left {
+    text-align: right;
+  }
+
+  [dir="rtl"] .text-right {
+    text-align: left;
+  }
+
+  /* Flip icons and elements in RTL */
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  /* Preserve LTR for specific elements */
+  .ltr-content {
+    direction: ltr !important;
   }
 }
+

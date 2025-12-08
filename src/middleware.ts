@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// Define locales
+const locales = ['ar', 'en'] as const;
+const defaultLocale = 'ar' as const;
+
 // Configure edge runtime for Cloudflare Pages compatibility
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (authentication endpoints)
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public files (public folder)
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
   ],
   runtime: 'experimental-edge',
 }
@@ -95,38 +99,55 @@ function hasAdminPermissions(token: string): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Extract locale from pathname
+  const pathnameLocale = locales.find(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+  )
+
+  // If no locale in pathname, redirect to default locale
+  if (!pathnameLocale) {
+    const locale = defaultLocale
+    const newUrl = new URL(`/${locale}${pathname}`, request.url)
+    const response = NextResponse.redirect(newUrl)
+    response.cookies.set('NEXT_LOCALE', locale, { path: '/', sameSite: 'lax' })
+    return response
+  }
+
+  // Remove locale prefix for route checking
+  const pathnameWithoutLocale = pathname.replace(`/${pathnameLocale}`, '') || '/'
+
   // Check if the route is protected
   const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
-    pathname.startsWith(route)
+    pathnameWithoutLocale.startsWith(route)
   )
-  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route))
-  const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
+  const isAuthRoute = AUTH_ROUTES.some((route) => pathnameWithoutLocale.startsWith(route))
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathnameWithoutLocale)
 
   // Get token from cookie
   const token = request.cookies.get('admin_token')?.value
 
   // Handle root route - redirect to dashboard if authenticated, login if not
-  if (isPublicRoute && pathname === '/') {
+  if (isPublicRoute && pathnameWithoutLocale === '/') {
     if (token && !isTokenExpired(token) && hasAdminPermissions(token)) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL(`/${pathnameLocale}/dashboard`, request.url))
     }
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+    return NextResponse.redirect(new URL(`/${pathnameLocale}/auth/login`, request.url))
   }
 
   // If protected route, check authentication
   if (isProtectedRoute) {
     if (!token) {
       // No token, redirect to login
-      const loginUrl = new URL('/auth/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
+      const loginUrl = new URL(`/${pathnameLocale}/auth/login`, request.url)
+      loginUrl.searchParams.set('redirect', pathnameWithoutLocale)
       return NextResponse.redirect(loginUrl)
     }
 
     // Check if token is expired
     if (isTokenExpired(token)) {
       // Token expired, redirect to login
-      const loginUrl = new URL('/auth/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
+      const loginUrl = new URL(`/${pathnameLocale}/auth/login`, request.url)
+      loginUrl.searchParams.set('redirect', pathnameWithoutLocale)
       loginUrl.searchParams.set('expired', 'true')
       return NextResponse.redirect(loginUrl)
     }
@@ -134,8 +155,8 @@ export function middleware(request: NextRequest) {
     // Check if user has admin permissions
     if (!hasAdminPermissions(token)) {
       // Not an admin, redirect to login with error
-      const loginUrl = new URL('/auth/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
+      const loginUrl = new URL(`/${pathnameLocale}/auth/login`, request.url)
+      loginUrl.searchParams.set('redirect', pathnameWithoutLocale)
       loginUrl.searchParams.set('error', 'admin_required')
       return NextResponse.redirect(loginUrl)
     }
@@ -143,13 +164,13 @@ export function middleware(request: NextRequest) {
 
   // If authenticated admin tries to access login page, redirect to dashboard
   if (isAuthRoute && token && !isTokenExpired(token) && hasAdminPermissions(token)) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL(`/${pathnameLocale}/dashboard`, request.url))
   }
 
-  // Add security headers
+  // Create response with security headers
   const response = NextResponse.next()
 
-  // Security headers for production
+  // Add security headers
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
@@ -157,6 +178,9 @@ export function middleware(request: NextRequest) {
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=()'
   )
+
+  // Set locale cookie
+  response.cookies.set('NEXT_LOCALE', pathnameLocale, { path: '/', sameSite: 'lax' })
 
   return response
 }

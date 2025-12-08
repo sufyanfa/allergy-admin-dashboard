@@ -43,7 +43,11 @@ interface ProductsTableProps {
   hasMore: boolean
 }
 
+import { useTranslations } from '@/lib/hooks/use-translations'
+
 export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: ProductsTableProps) {
+  const t = useTranslations('products')
+  const tCommon = useTranslations('common')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showDetails, setShowDetails] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -63,11 +67,11 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
 
     try {
       await deleteProduct(productToDelete.id)
-      toast.success('Product deleted successfully')
+      toast.success(t('deleteSuccess'))
       setShowDeleteDialog(false)
       setProductToDelete(null)
     } catch {
-      toast.error('Failed to delete product')
+      toast.error(t('deleteError'))
     }
   }
 
@@ -95,7 +99,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
       }
     } catch (error) {
       console.error('❌ Failed to fetch product details:', error)
-      toast.error('Failed to load full product details')
+      toast.error(t('fetchError'))
       // Keep showing the basic product info even if full fetch fails
     } finally {
       setIsLoadingDetails(false)
@@ -121,7 +125,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <span className="ml-2 text-muted-foreground">Loading products...</span>
+            <span className="ml-2 text-muted-foreground">{tCommon('loading')}</span>
           </div>
         </CardContent>
       </Card>
@@ -134,9 +138,9 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
         <CardContent className="pt-6">
           <div className="flex flex-col items-center justify-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No products found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('noProductsFound')}</h3>
             <p className="text-muted-foreground text-center max-w-md">
-              No products match your current search criteria. Try adjusting your filters or search terms.
+              {t('noProductsMatch')}
             </p>
           </div>
         </CardContent>
@@ -156,7 +160,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
               <div className="absolute inset-0 bg-white/80 dark:bg-gray-950/80 z-10 flex items-center justify-center rounded-md">
                 <div className="flex items-center space-x-2">
                   <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Loading products...</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{tCommon('loading')}</span>
                 </div>
               </div>
             )}
@@ -164,104 +168,104 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Brand</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Barcode</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('name')}</TableHead>
+                    <TableHead>{t('brand')}</TableHead>
+                    <TableHead>{t('category')}</TableHead>
+                    <TableHead>{t('barcode')}</TableHead>
+                    <TableHead>{t('dataSource')}</TableHead>
+                    <TableHead className="text-right">{tCommon('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        {product.imageUrl ? (
-                          <img
-                            src={product.imageUrl}
-                            alt={product.nameAr}
-                            className="h-12 w-12 rounded-md object-cover border border-gray-200"
-                            onError={(e) => {
-                              // If image fails to load, show placeholder
-                              const target = e.target as HTMLImageElement
-                              target.style.display = 'none'
-                              const placeholder = target.nextElementSibling as HTMLElement
-                              if (placeholder) placeholder.style.display = 'flex'
-                            }}
-                          />
-                        ) : null}
-                        <div className={`h-12 w-12 rounded-md bg-muted flex items-center justify-center border border-gray-200 ${product.imageUrl ? 'hidden' : ''}`}>
-                          <Package className="h-6 w-6 text-muted-foreground" />
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          {product.imageUrl ? (
+                            <img
+                              src={product.imageUrl}
+                              alt={product.nameAr}
+                              className="h-12 w-12 rounded-md object-cover border border-gray-200"
+                              onError={(e) => {
+                                // If image fails to load, show placeholder
+                                const target = e.target as HTMLImageElement
+                                target.style.display = 'none'
+                                const placeholder = target.nextElementSibling as HTMLElement
+                                if (placeholder) placeholder.style.display = 'flex'
+                              }}
+                            />
+                          ) : null}
+                          <div className={`h-12 w-12 rounded-md bg-muted flex items-center justify-center border border-gray-200 ${product.imageUrl ? 'hidden' : ''}`}>
+                            <Package className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <div className="font-medium">{product.nameAr}</div>
+                            {product.nameEn && (
+                              <div className="text-sm text-muted-foreground">{product.nameEn}</div>
+                            )}
+                          </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
                         <div>
-                          <div className="font-medium">{product.nameAr}</div>
-                          {product.nameEn && (
-                            <div className="text-sm text-muted-foreground">{product.nameEn}</div>
+                          <div className="font-medium">{product.brandAr}</div>
+                          {product.brandEn && (
+                            <div className="text-sm text-muted-foreground">{product.brandEn}</div>
                           )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{product.brandAr}</div>
-                        {product.brandEn && (
-                          <div className="text-sm text-muted-foreground">{product.brandEn}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{product.category}</Badge>
+                        {product.subcategory && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {product.subcategory}
+                          </div>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{product.category}</Badge>
-                      {product.subcategory && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {product.subcategory}
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-sm bg-muted px-2 py-1 rounded">
+                          {product.barcode || (
+                            <span className="text-muted-foreground not-italic">N/A</span>
+                          )}
+                        </code>
+                      </TableCell>
+                      <TableCell>{getDataSourceBadge(product.dataSource)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleView(product)}
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title={t('viewDetails')}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(product)}
+                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            title={t('editProduct')}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClick(product)}
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title={t('deleteProduct')}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {product.barcode || (
-                          <span className="text-muted-foreground not-italic">N/A</span>
-                        )}
-                      </code>
-                    </TableCell>
-                    <TableCell>{getDataSourceBadge(product.dataSource)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleView(product)}
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          title="View Details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(product)}
-                          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="Edit Product"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteClick(product)}
-                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          title="Delete Product"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           {/* Load More Button */}
@@ -275,10 +279,10 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
+                    {tCommon('loading')}
                   </>
                 ) : (
-                  'Load More Products'
+                  tCommon('loadMore')
                 )}
               </Button>
             </div>
@@ -287,7 +291,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
               <div className="flex justify-center mt-4 py-3">
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <Package className="h-4 w-4" />
-                  <span>All products loaded ({products.length} total)</span>
+                  <span>{tCommon('allLoaded')} ({products.length} {tCommon('total')})</span>
                 </div>
               </div>
             )
@@ -325,19 +329,18 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{tCommon('messages.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the product
-              &quot;{productToDelete?.nameAr}&quot; and remove all associated data.
+              {t('areYouSureDelete', { name: productToDelete?.nameAr || '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete Product
+              {t('deleteProduct')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

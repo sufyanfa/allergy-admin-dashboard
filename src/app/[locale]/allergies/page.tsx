@@ -1,11 +1,13 @@
 'use client'
 
 import { AdminLayout } from '@/components/layout/admin-layout'
-import { ProductsOverview } from '@/components/products/products-overview'
+import { AllergiesOverview } from '@/components/allergies/allergies-overview'
 import { useRequireAuth } from '@/lib/hooks/use-auth'
 import { Card, CardContent } from '@/components/ui/card'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
-export default function ProductsPage() {
+export default function AllergiesPage() {
+  const tCommon = useTranslations('common')
   const { isAdmin } = useRequireAuth()
 
   if (!isAdmin) {
@@ -14,8 +16,8 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-              <p className="text-muted-foreground">You need admin privileges to access this page.</p>
+              <h2 className="text-2xl font-bold mb-2">{tCommon('accessDenied')}</h2>
+              <p className="text-muted-foreground">{tCommon('adminPrivilegesRequired')}</p>
             </div>
           </CardContent>
         </Card>
@@ -25,7 +27,7 @@ export default function ProductsPage() {
 
   return (
     <AdminLayout>
-      <ProductsOverview />
+      <AllergiesOverview />
     </AdminLayout>
   )
 }

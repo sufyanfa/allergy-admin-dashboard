@@ -18,8 +18,11 @@ import { RefreshCw, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AnalyticsPeriod } from '@/types'
 import Link from 'next/link'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 export default function SearchQueriesPage() {
+  const tCommon = useTranslations('common')
+  const t = useTranslations('searchQueries')
   const {
     topQueries,
     queriesPagination,
@@ -60,10 +63,10 @@ export default function SearchQueriesPage() {
   }
 
   const periodButtons: { label: string; value: AnalyticsPeriod }[] = [
-    { label: 'Today', value: 'day' },
-    { label: 'This Week', value: 'week' },
-    { label: 'This Month', value: 'month' },
-    { label: 'All Time', value: 'all' },
+    { label: t('today'), value: 'day' },
+    { label: t('thisWeek'), value: 'week' },
+    { label: t('thisMonth'), value: 'month' },
+    { label: t('allTime'), value: 'all' },
   ]
 
   const formatNumber = (num: number) => {
@@ -95,13 +98,13 @@ export default function SearchQueriesPage() {
               <Link href="/analytics">
                 <Button variant="ghost" size="sm">
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
+                  {tCommon('back')}
                 </Button>
               </Link>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">Search Queries</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Most frequently searched terms and their success rates
+              {t('description')}
             </p>
           </div>
           <Button
@@ -111,7 +114,7 @@ export default function SearchQueriesPage() {
             size="sm"
           >
             <RefreshCw className={cn('h-4 w-4 mr-2', isLoadingTopQueries && 'animate-spin')} />
-            Refresh
+            {tCommon('refresh')}
           </Button>
         </div>
 
@@ -136,7 +139,7 @@ export default function SearchQueriesPage() {
             <CardContent className="flex items-center justify-center py-8">
               <div className="text-center">
                 <p className="text-destructive mb-4">{error}</p>
-                <Button onClick={handleRefresh}>Try Again</Button>
+                <Button onClick={handleRefresh}>{t('tryAgain')}</Button>
               </div>
             </CardContent>
           </Card>
@@ -147,15 +150,15 @@ export default function SearchQueriesPage() {
           <Card>
             <CardHeader>
               <CardTitle>
-                Top Search Queries
+                {t('title')}
                 {queriesPagination.total > 0 && (
                   <span className="ml-2 text-sm font-normal text-muted-foreground">
-                    ({formatNumber(queriesPagination.total)} total)
+                    ({formatNumber(queriesPagination.total)} {t('queries')})
                   </span>
                 )}
               </CardTitle>
               <CardDescription>
-                Most frequently searched terms and their success rates
+                {t('description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -166,9 +169,9 @@ export default function SearchQueriesPage() {
               ) : topQueries.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Search className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No search queries available</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('noQueriesAvailable')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    There are no search query analytics for the selected period.
+                    {t('noQueriesDescription')}
                   </p>
                 </div>
               ) : (
@@ -177,11 +180,11 @@ export default function SearchQueriesPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
-                        <TableHead>Search Query</TableHead>
-                        <TableHead className="text-right">Total Searches</TableHead>
-                        <TableHead className="text-right">Found Results</TableHead>
-                        <TableHead className="text-right">No Results</TableHead>
-                        <TableHead className="text-right">Success Rate</TableHead>
+                        <TableHead>{t('searchQuery')}</TableHead>
+                        <TableHead className="text-right">{t('totalSearches')}</TableHead>
+                        <TableHead className="text-right">{t('foundResults')}</TableHead>
+                        <TableHead className="text-right">{t('noResults')}</TableHead>
+                        <TableHead className="text-right">{t('successRate')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -224,13 +227,13 @@ export default function SearchQueriesPage() {
                   {/* Summary Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t">
                     <div className="text-center">
-                      <div className="text-sm text-muted-foreground mb-1">Total Queries</div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('totalQueries')}</div>
                       <div className="text-2xl font-bold">
                         {formatNumber(queriesPagination.total)}
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm text-muted-foreground mb-1">Total Searches</div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('totalSearches')}</div>
                       <div className="text-2xl font-bold">
                         {formatNumber(
                           topQueries.reduce((sum, q) => sum + q.searchCount, 0)
@@ -238,19 +241,19 @@ export default function SearchQueriesPage() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm text-muted-foreground mb-1">Avg Success Rate</div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('avgSuccessRate')}</div>
                       <div className="text-2xl font-bold">
                         {topQueries.length > 0
                           ? (
-                              topQueries.reduce(
-                                (sum, q) =>
-                                  sum +
-                                  parseFloat(
-                                    calculateSuccessRate(q.resultFoundCount, q.searchCount)
-                                  ),
-                                0
-                              ) / topQueries.length
-                            ).toFixed(1)
+                            topQueries.reduce(
+                              (sum, q) =>
+                                sum +
+                                parseFloat(
+                                  calculateSuccessRate(q.resultFoundCount, q.searchCount)
+                                ),
+                              0
+                            ) / topQueries.length
+                          ).toFixed(1)
                           : 0}
                         %
                       </div>
@@ -261,8 +264,8 @@ export default function SearchQueriesPage() {
                   {queriesPagination.total > limit && (
                     <div className="flex items-center justify-between mt-6 pt-4 border-t">
                       <div className="text-sm text-muted-foreground">
-                        Showing {currentStart} to {currentEnd} of{' '}
-                        {formatNumber(queriesPagination.total)} queries
+                        {t('showing')} {currentStart} {t('to')} {currentEnd} {t('of')}{' '}
+                        {formatNumber(queriesPagination.total)} {t('queries')}
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -272,7 +275,7 @@ export default function SearchQueriesPage() {
                           size="sm"
                         >
                           <ChevronLeft className="h-4 w-4 mr-1" />
-                          Previous
+                          {tCommon('previous')}
                         </Button>
                         <Button
                           onClick={handleNextPage}
@@ -280,7 +283,7 @@ export default function SearchQueriesPage() {
                           variant="outline"
                           size="sm"
                         >
-                          Next
+                          {tCommon('next')}
                           <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
                       </div>

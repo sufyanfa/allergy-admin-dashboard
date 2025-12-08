@@ -17,12 +17,17 @@ import { RefreshCw, Search, TrendingUp, BarChart3, CheckCircle, ArrowRight } fro
 import { cn } from '@/lib/utils'
 import type { AnalyticsPeriod } from '@/types'
 import Link from 'next/link'
+import { useTranslations } from '@/lib/hooks/use-translations'
+
 
 interface AnalyticsOverviewProps {
   className?: string
 }
 
 export function AnalyticsOverview({ className }: AnalyticsOverviewProps) {
+  const t = useTranslations('analytics')
+  const tCommon = useTranslations('common')
+
   const {
     dashboardData,
     currentPeriod,
@@ -92,9 +97,9 @@ export function AnalyticsOverview({ className }: AnalyticsOverviewProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground mt-1">
-            Search analytics and product popularity insights
+            {t('searchAnalytics')}
           </p>
         </div>
         <Button
@@ -104,7 +109,7 @@ export function AnalyticsOverview({ className }: AnalyticsOverviewProps) {
           size="sm"
         >
           <RefreshCw className={cn('h-4 w-4 mr-2', isLoadingDashboard && 'animate-spin')} />
-          Refresh
+          {tCommon('refresh')}
         </Button>
       </div>
 
@@ -128,7 +133,7 @@ export function AnalyticsOverview({ className }: AnalyticsOverviewProps) {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Searches</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('totalSearches')}</CardTitle>
               <Search className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -198,7 +203,7 @@ export function AnalyticsOverview({ className }: AnalyticsOverviewProps) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Most Searched Products</CardTitle>
+                <CardTitle>{t('topSearches')}</CardTitle>
                 <CardDescription>Top 10 products by search count</CardDescription>
               </div>
               <Link href="/analytics/most-searched">
@@ -250,7 +255,7 @@ export function AnalyticsOverview({ className }: AnalyticsOverviewProps) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Most Popular Products</CardTitle>
+                <CardTitle>{t('popularProducts')}</CardTitle>
                 <CardDescription>Top 10 products by popularity score</CardDescription>
               </div>
               <Link href="/analytics/most-popular">

@@ -9,14 +9,18 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, Loader2, Shield } from 'lucide-react'
 import { isValidEmail, sanitizeInput, loginRateLimiter, otpRateLimiter, setupCSP } from '@/lib/utils/security'
-
-const ERROR_MESSAGES = {
-  admin_required: 'Access denied. Admin privileges are required to access this dashboard.',
-  unauthenticated: 'Please log in to continue.',
-  expired: 'Your session has expired. Please log in again.',
-}
+import { useTranslations, useLocale } from '@/lib/hooks/use-translations'
 
 function LoginForm() {
+  const t = useTranslations('auth')
+  const tCommon = useTranslations('common')
+  const locale = useLocale()
+
+  const ERROR_MESSAGES: Record<string, string> = {
+    admin_required: t('accessDenied'),
+    unauthenticated: t('pleaseLogin'),
+    expired: t('sessionExpiredMessage'),
+  }
   const [step, setStep] = useState<'email' | 'otp'>('email')
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
@@ -58,7 +62,7 @@ function LoginForm() {
     // Validate email
     const sanitizedEmail = sanitizeInput(email)
     if (!isValidEmail(sanitizedEmail)) {
-      setError('Please enter a valid email address')
+      setError(t('invalidEmail'))
       return
     }
 
@@ -66,7 +70,8 @@ function LoginForm() {
     if (!loginRateLimiter.isAllowed(sanitizedEmail)) {
       const timeRemaining = loginRateLimiter.getTimeUntilReset(sanitizedEmail)
       setRemainingTime(timeRemaining)
-      setError(`Too many attempts. Please try again in ${Math.ceil(timeRemaining / 60000)} minutes.`)
+      const minutes = Math.ceil(timeRemaining / 60000)
+      setError(t('tooManyAttempts').replace('{minutes}', minutes.toString()))
       return
     }
 
@@ -91,10 +96,10 @@ function LoginForm() {
         setEmail(sanitizedEmail) // Store sanitized email
         setStep('otp')
       } else {
-        setError(responseData.message || 'Failed to send OTP')
+        setError(responseData.message || t('failedSendOtp'))
       }
     } catch (error: unknown) {
-      setError((error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to send OTP')
+      setError((error as { response?: { data?: { message?: string } } })?.response?.data?.message || t('failedSendOtp'))
     } finally {
       setIsLoading(false)
     }
@@ -107,7 +112,7 @@ function LoginForm() {
     // Sanitize OTP input
     const sanitizedOTP = sanitizeInput(otp).replace(/[^0-9]/g, '')
     if (sanitizedOTP.length !== 6) {
-      setError('Please enter a valid 6-digit OTP')
+      setError(t('invalidOtp'))
       return
     }
 
@@ -115,7 +120,8 @@ function LoginForm() {
     if (!otpRateLimiter.isAllowed(email)) {
       const timeRemaining = otpRateLimiter.getTimeUntilReset(email)
       setRemainingTime(timeRemaining)
-      setError(`Too many OTP attempts. Please try again in ${Math.ceil(timeRemaining / 60000)} minutes.`)
+      const minutes = Math.ceil(timeRemaining / 60000)
+      setError(t('tooManyAttempts').replace('{minutes}', minutes.toString()))
       return
     }
 
@@ -138,18 +144,18 @@ function LoginForm() {
           <div className="flex items-center justify-center space-x-2">
             <Shield className="h-6 w-6 text-blue-600" />
             <CardTitle className="text-2xl font-bold text-center">
-              Admin Login
+              {t('adminLogin')}
             </CardTitle>
           </div>
           <CardDescription className="text-center">
             {step === 'email'
-              ? 'Enter your email address to receive an OTP'
-              : 'Enter the OTP sent to your email'
+              ? t('enterEmail')
+              : t('enterOtp')
             }
           </CardDescription>
           {remainingTime > 0 && (
             <div className="text-center text-sm text-orange-600">
-              Rate limited. Try again in {Math.ceil(remainingTime / 1000)} seconds
+              {t('rateLimited').replace('{seconds}', Math.ceil(remainingTime / 1000).toString())}
             </div>
           )}
         </CardHeader>
@@ -157,11 +163,11 @@ function LoginForm() {
           {step === 'email' ? (
             <form onSubmit={handleSendOTP} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t('emailAddress')}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder={t('emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -180,23 +186,23 @@ function LoginForm() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending OTP...
+                    {t('sendingOtp')}
                   </>
                 ) : remainingTime > 0 ? (
-                  `Wait ${Math.ceil(remainingTime / 1000)}s`
+                  t('waitSeconds').replace('{seconds}', Math.ceil(remainingTime / 1000).toString())
                 ) : (
-                  'Send OTP'
+                  t('sendOtp')
                 )}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleVerifyOTP} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="otp">OTP Code</Label>
+                <Label htmlFor="otp">{t('otpCode')}</Label>
                 <Input
                   id="otp"
                   type="text"
-                  placeholder="Enter 6-digit code"
+                  placeholder={t('otpPlaceholder')}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   maxLength={6}
@@ -224,18 +230,18 @@ function LoginForm() {
                   }}
                   disabled={isLoading}
                 >
-                  Back
+                  {tCommon('back')}
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isLoading || remainingTime > 0}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying...
+                      {t('verifying')}
                     </>
                   ) : remainingTime > 0 ? (
-                    `Wait ${Math.ceil(remainingTime / 1000)}s`
+                    t('waitSeconds').replace('{seconds}', Math.ceil(remainingTime / 1000).toString())
                   ) : (
-                    'Verify & Login'
+                    t('verifyLogin')
                   )}
                 </Button>
               </div>

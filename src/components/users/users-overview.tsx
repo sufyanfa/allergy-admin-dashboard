@@ -30,12 +30,17 @@ import { UserForm } from '@/components/forms/user-form'
 import { User } from '@/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 interface UsersOverviewProps {
   className?: string
 }
 
 export function UsersOverview({ className }: UsersOverviewProps) {
+  const t = useTranslations('users')
+  const tCommon = useTranslations('common')
+  const tMessages = useTranslations('messages')
+
   const {
     users,
     overview,
@@ -94,14 +99,14 @@ export function UsersOverview({ className }: UsersOverviewProps) {
     try {
       if (selectedUser) {
         await updateUser(selectedUser.id, data)
-        toast.success('User updated successfully')
+        toast.success(tMessages('updated'))
       } else {
         await createUser(data)
-        toast.success('User created successfully')
+        toast.success(tMessages('created'))
       }
       setIsFormOpen(false)
     } catch (error: unknown) {
-      toast.error((error as Error)?.message || 'Failed to save user')
+      toast.error((error as Error)?.message || tMessages('error'))
     }
   }
 
@@ -110,10 +115,10 @@ export function UsersOverview({ className }: UsersOverviewProps) {
     if (deleteDialog.userId) {
       try {
         await deleteUser(deleteDialog.userId)
-        toast.success('User deleted successfully')
+        toast.success(tMessages('deleted'))
         setDeleteDialog({ open: false, userId: null })
       } catch (error: unknown) {
-        toast.error((error as Error)?.message || 'Failed to delete user')
+        toast.error((error as Error)?.message || tMessages('error'))
       }
     }
   }
@@ -189,23 +194,23 @@ export function UsersOverview({ className }: UsersOverviewProps) {
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage user accounts, roles, and permissions
+            {t('title')}
           </p>
         </div>
         <div className="flex space-x-2">
           <Button onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {tCommon('refresh')}
           </Button>
           <Button onClick={handleExport} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {tCommon('export')}
           </Button>
           <Button onClick={handleCreateUser}>
             <Plus className="h-4 w-4 mr-2" />
-            Add User
+            {t('addUser')}
           </Button>
         </div>
       </div>
@@ -217,7 +222,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
             <div className="flex items-center justify-between">
               <p className="text-red-600">{error}</p>
               <Button onClick={clearError} variant="ghost" size="sm">
-                Dismiss
+                {tCommon('close')}
               </Button>
             </div>
           </CardContent>
@@ -227,7 +232,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
       {/* Overview Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Users"
+          title={t("totalUsers")}
           value={overview?.totalUsers.count || 0}
           change={{
             value: overview?.totalUsers.growthPercentage || 0,
@@ -235,12 +240,12 @@ export function UsersOverview({ className }: UsersOverviewProps) {
             period: 'vs last month'
           }}
           icon="users"
-          description="Registered users"
+          description={t("registeredUsers")}
           loading={loading}
         />
 
         <StatsCard
-          title="Active Users"
+          title={t("activeUsers")}
           value={overview?.activeUsers.count || 0}
           change={{
             value: overview?.activeUsers.percentage || 0,
@@ -248,12 +253,12 @@ export function UsersOverview({ className }: UsersOverviewProps) {
             period: 'of total users'
           }}
           icon="activity"
-          description="Currently active"
+          description={t("currentlyActive")}
           loading={loading}
         />
 
         <StatsCard
-          title="Premium Users"
+          title={t("premiumUsers")}
           value={overview?.premiumUsers.count || 0}
           change={{
             value: overview?.premiumUsers.percentage || 0,
@@ -261,15 +266,15 @@ export function UsersOverview({ className }: UsersOverviewProps) {
             period: 'of total users'
           }}
           icon="shield-check"
-          description="Premium subscribers"
+          description={t("premiumSubscribers")}
           loading={loading}
         />
 
         <StatsCard
-          title="Growth Rate"
+          title={t("growthRate")}
           value={`${overview?.totalUsers.growthPercentage || 0}%`}
           icon="activity"
-          description="User growth this month"
+          description={t("userGrowthThisMonth")}
           loading={loading}
         />
       </div>
@@ -277,13 +282,13 @@ export function UsersOverview({ className }: UsersOverviewProps) {
       {/* Role Distribution Chart and Growth Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DistributionChart
-          title="Role Distribution"
+          title={t("roleDistribution")}
           data={roleDistributionData}
           loading={loading}
           onRefresh={handleRefresh}
           centerText={overview ? {
             primary: overview.totalUsers.count.toString(),
-            secondary: 'Total Users'
+            secondary: t('totalUsers')
           } : undefined}
         />
 
@@ -335,7 +340,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search users by name or username..."
+                  placeholder={tCommon("search")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -367,7 +372,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
                   onValueChange={(value) => setFilters({ role: value === 'all' ? '' : value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Roles" />
+                    <SelectValue placeholder={t("allRoles")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
@@ -384,7 +389,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
                   onValueChange={(value) => setFilters({ status: value === 'all' ? '' : value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
+                    <SelectValue placeholder={t("allStatus")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>

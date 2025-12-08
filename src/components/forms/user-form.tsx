@@ -33,7 +33,11 @@ interface UserFormProps {
   loading?: boolean
 }
 
+import { useTranslations } from '@/lib/hooks/use-translations'
+
 export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormProps) {
+  const t = useTranslations('users')
+  const tCommon = useTranslations('common')
   const [formData, setFormData] = useState<Partial<User>>({
     fullName: '',
     username: '',
@@ -101,12 +105,12 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {user ? 'Edit User' : 'Create New User'}
+            {user ? t('editUserTitle') : t('createUserTitle')}
           </DialogTitle>
           <DialogDescription>
             {user
-              ? 'Update user information and settings.'
-              : 'Create a new user account with the required information.'
+              ? t('editUserDesc')
+              : t('createUserDesc')
             }
           </DialogDescription>
         </DialogHeader>
@@ -115,51 +119,51 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Basic Information</CardTitle>
+              <CardTitle className="text-lg">{t('basicInformation')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">{t('name')}</Label>
                   <Input
                     id="fullName"
                     value={formData.fullName}
                     onChange={(e) => handleChange('fullName', e.target.value)}
-                    placeholder="Enter full name"
+                    placeholder={t('enterFullName')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">{tCommon('login')} / Username</Label>
                   <Input
                     id="username"
                     value={formData.username}
                     onChange={(e) => handleChange('username', e.target.value)}
-                    placeholder="Enter username"
+                    placeholder={t('enterUsername')}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('email')}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleChange('email', e.target.value)}
-                    placeholder="Enter email address"
+                    placeholder={t('enterEmail')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t('phone')}</Label>
                   <Input
                     id="phone"
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
-                    placeholder="Enter phone number"
+                    placeholder={t('enterPhone')}
                   />
                 </div>
               </div>
@@ -169,40 +173,40 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
           {/* Profile Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Profile Information</CardTitle>
+              <CardTitle className="text-lg">{t('profileInformation')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{t('bio')}</Label>
                 <Textarea
                   id="bio"
                   value={formData.bio}
                   onChange={(e) => handleChange('bio', e.target.value)}
-                  placeholder="Enter bio"
+                  placeholder={t('enterBio')}
                   rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
+                  <Label htmlFor="website">{t('website')}</Label>
                   <Input
                     id="website"
                     type="url"
                     value={formData.website}
                     onChange={(e) => handleChange('website', e.target.value)}
-                    placeholder="Enter website URL"
+                    placeholder={t('enterWebsite')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">{t('location')}</Label>
                   <Input
                     id="location"
                     value={formData.location}
                     onChange={(e) => handleChange('location', e.target.value)}
-                    placeholder="Enter location"
+                    placeholder={t('enterLocation')}
                   />
                 </div>
               </div>
@@ -212,41 +216,40 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
           {/* System Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">System Settings</CardTitle>
+              <CardTitle className="text-lg">{tCommon('settings')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <div className="space-y-2">
-                  <Label>Role</Label>
+                  <Label>{t('role')}</Label>
                   <Select
                     value={formData.role}
                     onValueChange={(value) => handleChange('role', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder={t('selectRole')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={USER_ROLES.USER}>User</SelectItem>
-                      <SelectItem value={USER_ROLES.PREMIUM}>Premium</SelectItem>
-                      <SelectItem value={USER_ROLES.ADMIN}>Admin</SelectItem>
+                      <SelectItem value={USER_ROLES.USER}>{t('user')}</SelectItem>
+                      <SelectItem value={USER_ROLES.ADMIN}>{t('admin')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Status</Label>
+                  <Label>{t('status')}</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value) => handleChange('status', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder={t('selectStatus')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={USER_STATUSES.ACTIVE}>Active</SelectItem>
-                      <SelectItem value={USER_STATUSES.INACTIVE}>Inactive</SelectItem>
-                      <SelectItem value={USER_STATUSES.SUSPENDED}>Suspended</SelectItem>
+                      <SelectItem value={USER_STATUSES.ACTIVE}>{tCommon('active')}</SelectItem>
+                      <SelectItem value={USER_STATUSES.INACTIVE}>{tCommon('inactive')}</SelectItem>
+                      <SelectItem value={USER_STATUSES.SUSPENDED}>{t('suspendUser')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -257,15 +260,15 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
           {/* Privacy Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Privacy & Notifications</CardTitle>
+              <CardTitle className="text-lg">{t('privacyNotifications')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Public Profile</Label>
+                  <Label>{t('publicProfile')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Allow other users to view this profile
+                    {t('publicProfileDesc')}
                   </p>
                 </div>
                 <Switch
@@ -276,9 +279,9 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Allow Contact via Email</Label>
+                  <Label>{t('allowContact')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Allow other users to contact via email
+                    {t('allowContactDesc')}
                   </p>
                 </div>
                 <Switch
@@ -289,9 +292,9 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Email Notifications</Label>
+                  <Label>{t('emailNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive email notifications
+                    {t('emailNotificationsDesc')}
                   </p>
                 </div>
                 <Switch
@@ -302,9 +305,9 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Push Notifications</Label>
+                  <Label>{t('pushNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive push notifications
+                    {t('pushNotificationsDesc')}
                   </p>
                 </div>
                 <Switch
@@ -317,10 +320,10 @@ export function UserForm({ user, open, onClose, onSubmit, loading }: UserFormPro
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : user ? 'Update User' : 'Create User'}
+              {loading ? t('saving') : user ? t('updateUser') : t('createUser')}
             </Button>
           </DialogFooter>
         </form>

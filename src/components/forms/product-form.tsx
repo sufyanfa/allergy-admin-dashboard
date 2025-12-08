@@ -29,6 +29,8 @@ import { Plus, X, Loader2, Package } from 'lucide-react'
 import { Product, ProductInput, ProductCategory } from '@/types'
 import { useProductsStore } from '@/lib/stores/products-store'
 import { toast } from 'sonner'
+import { useTranslations } from '@/lib/hooks/use-translations'
+
 
 const productSchema = z.object({
   barcode: z.string().min(1, 'Barcode is required'),
@@ -59,6 +61,10 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ open, onClose, product, categories }: ProductFormProps) {
+  const t = useTranslations('products')
+  const tCommon = useTranslations('common')
+  const tMessages = useTranslations('messages')
+
   const [ingredients, setIngredients] = useState<IngredientFormData[]>([])
   const [newIngredient, setNewIngredient] = useState<IngredientFormData>({
     nameAr: '',
@@ -170,15 +176,15 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
 
       if (product) {
         await updateProduct(product.id, productData)
-        toast.success('Product updated successfully')
+        toast.success(tMessages('updated'))
       } else {
         await createProduct(productData)
-        toast.success('Product created successfully')
+        toast.success(tMessages('created'))
       }
 
       onClose()
     } catch {
-      toast.error(product ? 'Failed to update product' : 'Failed to create product')
+      toast.error(tMessages('error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -188,7 +194,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{product ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+          <DialogTitle>{product ? t('editProduct') : t('addProduct')}</DialogTitle>
           <DialogDescription>
             {product
               ? 'Update the product information and ingredients.'
@@ -201,7 +207,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Basic Information</CardTitle>
+                <CardTitle className="text-lg">{t('basicInformation')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -210,9 +216,9 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="barcode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Barcode *</FormLabel>
+                        <FormLabel>{t('barcode')} *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter barcode" />
+                          <Input {...field} placeholder={t('enterBarcode')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -224,11 +230,11 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category *</FormLabel>
+                        <FormLabel>{t('category')} *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder={t('selectCategory')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -251,9 +257,9 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="nameAr"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Name (Arabic) *</FormLabel>
+                        <FormLabel>{t('productNameAr')} *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="اسم المنتج" dir="rtl" />
+                          <Input {...field} placeholder={t('productNameArPlaceholder')} dir="rtl" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -265,9 +271,9 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="nameEn"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Name (English)</FormLabel>
+                        <FormLabel>{t('productNameEn')}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Product name" />
+                          <Input {...field} placeholder={t('productNameEnPlaceholder')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -281,9 +287,9 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="brandAr"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Brand (Arabic) *</FormLabel>
+                        <FormLabel>{t('brandAr')} *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="العلامة التجارية" dir="rtl" />
+                          <Input {...field} placeholder={t('brandArPlaceholder')} dir="rtl" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -295,9 +301,9 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="brandEn"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Brand (English)</FormLabel>
+                        <FormLabel>{t('brandEn')}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Brand name" />
+                          <Input {...field} placeholder={t('brandEnPlaceholder')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -311,9 +317,9 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="subcategory"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Subcategory</FormLabel>
+                        <FormLabel>{t('subcategory')}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Product subcategory" />
+                          <Input {...field} placeholder={t('enterSubcategory')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -325,7 +331,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="countryOfOrigin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Country of Origin</FormLabel>
+                        <FormLabel>{t('countryOfOrigin')}</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="Made in..." />
                         </FormControl>
@@ -340,7 +346,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                   name="imageUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Image URL</FormLabel>
+                      <FormLabel>{t('imageUrl')}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="https://example.com/image.jpg" />
                       </FormControl>
@@ -366,7 +372,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     name="dataSource"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Data Source</FormLabel>
+                        <FormLabel>{t('dataSource')}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -374,9 +380,9 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="manual">Manual Entry</SelectItem>
-                            <SelectItem value="api">API Import</SelectItem>
-                            <SelectItem value="community">Community Sourced</SelectItem>
+                            <SelectItem value="manual">{t('manualEntry')}</SelectItem>
+                            <SelectItem value="api">{t('apiImport')}</SelectItem>
+                            <SelectItem value="community">{t('communitySourced')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -391,7 +397,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
             {/* Ingredients */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Ingredients</CardTitle>
+                <CardTitle className="text-lg">{t('ingredients')}</CardTitle>
                 <FormDescription>
                   Add and manage product ingredients. You can edit each ingredient after adding.
                 </FormDescription>
@@ -399,10 +405,10 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
               <CardContent className="space-y-4">
                 {/* Add Ingredient Form */}
                 <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
-                  <h4 className="font-medium mb-3 text-blue-900">Add New Ingredient</h4>
+                  <h4 className="font-medium mb-3 text-blue-900">{t('addNewIngredient')}</h4>
                   <div className="flex flex-col md:flex-row gap-3">
                     <Input
-                      placeholder="اسم المكون بالعربية *"
+                      placeholder={t('ingredientNameArPlaceholder')}
                       value={newIngredient.nameAr}
                       onChange={(e) =>
                         setNewIngredient(prev => ({ ...prev, nameAr: e.target.value }))
@@ -417,7 +423,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                       className="flex-1"
                     />
                     <Input
-                      placeholder="Ingredient name in English"
+                      placeholder={t('ingredientNameEnPlaceholder')}
                       value={newIngredient.nameEn}
                       onChange={(e) =>
                         setNewIngredient(prev => ({ ...prev, nameEn: e.target.value }))
@@ -437,7 +443,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                       className="md:w-auto w-full"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      Add Ingredient
+                      {t('addIngredient')}
                     </Button>
                   </div>
                 </div>
@@ -445,7 +451,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                 {/* Ingredients List */}
                 {ingredients.length > 0 ? (
                   <div className="space-y-2">
-                    <h4 className="font-medium">Ingredients List ({ingredients.length})</h4>
+                    <h4 className="font-medium">{t('ingredientsList')} ({ingredients.length})</h4>
                     <div className="space-y-2">
                       {ingredients.map((ingredient, index) => (
                         <div
@@ -455,14 +461,14 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                           <span className="text-sm font-medium w-6">{index + 1}.</span>
                           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
                             <Input
-                              placeholder="Arabic name *"
+                              placeholder={t('ingredientNameArPlaceholder')}
                               value={ingredient.nameAr}
                               onChange={(e) => handleUpdateIngredient(index, 'nameAr', e.target.value)}
                               dir="rtl"
                               className="text-sm"
                             />
                             <Input
-                              placeholder="English name"
+                              placeholder={t('ingredientNameEnPlaceholder')}
                               value={ingredient.nameEn}
                               onChange={(e) => handleUpdateIngredient(index, 'nameEn', e.target.value)}
                               className="text-sm"
@@ -485,8 +491,8 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                 ) : (
                   <div className="text-center py-6 text-muted-foreground">
                     <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>No ingredients added yet</p>
-                    <p className="text-sm">Use the form above to add ingredients</p>
+                    <p>{t('noIngredientsYet')}</p>
+                    <p className="text-sm">{t('useFormAbove')}</p>
                   </div>
                 )}
               </CardContent>
@@ -494,16 +500,16 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {product ? 'Updating...' : 'Creating...'}
+                    {product ? tCommon('updating') : tCommon('creating')}
                   </>
                 ) : (
-                  product ? 'Update Product' : 'Create Product'
+                  product ? t('editProduct') : t('addProduct')
                 )}
               </Button>
             </DialogFooter>

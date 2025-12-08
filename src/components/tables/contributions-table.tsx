@@ -24,6 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { MoreHorizontal, Eye, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 interface ContributionsTableProps {
   contributions: Contribution[]
@@ -52,13 +53,16 @@ export function ContributionsTable({
   hasMore,
   className
 }: ContributionsTableProps) {
+  const t = useTranslations('contributions')
+  const tCommon = useTranslations('common')
+  const tProducts = useTranslations('products')
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline', label: string }> = {
-      pending: { variant: 'secondary', label: 'Pending' },
-      approved: { variant: 'default', label: 'Approved' },
-      rejected: { variant: 'destructive', label: 'Rejected' }
+      pending: { variant: 'secondary', label: t('pending') },
+      approved: { variant: 'default', label: t('approved') },
+      rejected: { variant: 'destructive', label: t('rejected') }
     }
 
     const { variant, label } = variants[status] || variants.pending
@@ -67,10 +71,10 @@ export function ContributionsTable({
 
   const getTypeBadge = (type: ContributionType) => {
     const types: Record<ContributionType, { color: string, label: string }> = {
-      new_product: { color: 'bg-blue-100 text-blue-800', label: 'New Product' },
-      edit_ingredients: { color: 'bg-purple-100 text-purple-800', label: 'Edit Ingredients' },
-      add_image: { color: 'bg-green-100 text-green-800', label: 'Add Image' },
-      report_error: { color: 'bg-orange-100 text-orange-800', label: 'Report Error' }
+      new_product: { color: 'bg-blue-100 text-blue-800', label: t('newProduct') },
+      edit_ingredients: { color: 'bg-purple-100 text-purple-800', label: t('editIngredients') },
+      add_image: { color: 'bg-green-100 text-green-800', label: t('addImage') },
+      report_error: { color: 'bg-orange-100 text-orange-800', label: t('reportError') }
     }
 
     const { color, label } = types[type] || types.new_product
@@ -103,9 +107,9 @@ export function ContributionsTable({
           <div className="rounded-full bg-muted p-3">
             <Eye className="h-6 w-6 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold">No contributions found</h3>
+          <h3 className="font-semibold">{t('noContributionsFound')}</h3>
           <p className="text-sm text-muted-foreground">
-            There are no contributions matching your criteria.
+            {t('noContributionsMatch')}
           </p>
         </div>
       </div>
@@ -127,12 +131,12 @@ export function ContributionsTable({
                   />
                 </TableHead>
               )}
-              <TableHead>Type</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Product Info</TableHead>
-              <TableHead>AI Confidence</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead>{t('type')}</TableHead>
+              <TableHead>{tCommon('nav.users')}</TableHead>
+              <TableHead>{t('productInfo')}</TableHead>
+              <TableHead>{t('aiConfidence')}</TableHead>
+              <TableHead>{t('pending')}</TableHead>
+              <TableHead>{tProducts('created')}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -162,8 +166,8 @@ export function ContributionsTable({
                   <TableCell>{getTypeBadge(contribution.contributionType)}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{contribution.user?.name || 'Unknown'}</span>
-                      <span className="text-xs text-muted-foreground">@{contribution.user?.username || 'unknown'}</span>
+                      <span className="font-medium">{contribution.user?.name || tCommon('unknown')}</span>
+                      <span className="text-xs text-muted-foreground">@{contribution.user?.username || tCommon('unknown')}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -182,7 +186,7 @@ export function ContributionsTable({
                         <span className="text-xs text-muted-foreground">{contribution.product.barcode}</span>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">No product</span>
+                      <span className="text-muted-foreground">{t('noProduct')}</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -208,19 +212,19 @@ export function ContributionsTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {onView && (
                           <DropdownMenuItem onClick={() => onView(contribution)}>
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {tCommon('view')} {tCommon('details')}
                           </DropdownMenuItem>
                         )}
                         {contribution.status === 'pending' && (
                           <>
                             {onApprove && (
                               <DropdownMenuItem
-                                onClick={() => handleAction(() => onApprove(contribution), contribution.id)}
+                                onClick={async () => handleAction(async () => onApprove(contribution), contribution.id)}
                                 disabled={loadingId === contribution.id}
                               >
                                 {loadingId === contribution.id ? (
@@ -228,12 +232,12 @@ export function ContributionsTable({
                                 ) : (
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                 )}
-                                Approve
+                                {t('approve')}
                               </DropdownMenuItem>
                             )}
                             {onReject && (
                               <DropdownMenuItem
-                                onClick={() => handleAction(() => onReject(contribution), contribution.id)}
+                                onClick={async () => handleAction(async () => onReject(contribution), contribution.id)}
                                 disabled={loadingId === contribution.id}
                               >
                                 {loadingId === contribution.id ? (
@@ -241,7 +245,7 @@ export function ContributionsTable({
                                 ) : (
                                   <XCircle className="h-4 w-4 mr-2" />
                                 )}
-                                Reject
+                                {t('reject')}
                               </DropdownMenuItem>
                             )}
                           </>
@@ -256,24 +260,26 @@ export function ContributionsTable({
         </Table>
       </div>
 
-      {hasMore && (
-        <div className="flex justify-center">
-          <Button
-            onClick={onLoadMore}
-            variant="outline"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              'Load More'
-            )}
-          </Button>
-        </div>
-      )}
-    </div>
+      {
+        hasMore && (
+          <div className="flex justify-center">
+            <Button
+              onClick={onLoadMore}
+              variant="outline"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {tCommon('loading')}
+                </>
+              ) : (
+                tCommon('loadMore')
+              )}
+            </Button>
+          </div>
+        )
+      }
+    </div >
   )
 }

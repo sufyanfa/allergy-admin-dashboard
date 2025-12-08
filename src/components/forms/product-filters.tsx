@@ -18,6 +18,8 @@ interface ProductFiltersProps {
   onClear: () => void
 }
 
+import { useTranslations } from '@/lib/hooks/use-translations'
+
 export function ProductFilters({
   filters,
   categories,
@@ -25,6 +27,8 @@ export function ProductFilters({
   onSearch,
   onClear
 }: ProductFiltersProps) {
+  const t = useTranslations('products')
+  const tCommon = useTranslations('common')
   const [localFilters, setLocalFilters] = useState<ProductSearchFilters>(filters)
 
   const handleFilterChange = (key: keyof ProductSearchFilters, value: string | boolean | undefined) => {
@@ -67,10 +71,10 @@ export function ProductFilters({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Filter className="h-4 w-4" />
-              <h3 className="font-medium">Advanced Filters</h3>
+              <h3 className="font-medium">{t('advancedFilters')}</h3>
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="text-xs">
-                  {activeFiltersCount} active
+                  {activeFiltersCount} {t('active')}
                 </Badge>
               )}
             </div>
@@ -81,7 +85,7 @@ export function ProductFilters({
               disabled={activeFiltersCount === 0}
             >
               <X className="h-4 w-4 mr-1" />
-              Clear All
+              {t('clearAll')}
             </Button>
           </div>
 
@@ -89,10 +93,10 @@ export function ProductFilters({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Query Filter */}
             <div className="space-y-2">
-              <Label htmlFor="query-filter">Search Query</Label>
+              <Label htmlFor="query-filter">{t('searchQuery')}</Label>
               <Input
                 id="query-filter"
-                placeholder="Product name, brand, barcode..."
+                placeholder={t('searchPlaceholder')}
                 value={localFilters.query || ''}
                 onChange={(e) => handleFilterChange('query', e.target.value)}
               />
@@ -100,16 +104,16 @@ export function ProductFilters({
 
             {/* Category Filter */}
             <div className="space-y-2">
-              <Label htmlFor="category-filter">Category</Label>
+              <Label htmlFor="category-filter">{t('category')}</Label>
               <Select
                 value={localFilters.category || 'all'}
                 onValueChange={(value) => handleFilterChange('category', value === 'all' ? '' : value)}
               >
                 <SelectTrigger id="category-filter">
-                  <SelectValue placeholder="All categories" />
+                  <SelectValue placeholder={t('allCategories')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
+                  <SelectItem value="all">{t('allCategories')}</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.nameEn}>
                       {category.nameEn} - {category.nameAr}
@@ -121,10 +125,10 @@ export function ProductFilters({
 
             {/* Brand Filter */}
             <div className="space-y-2">
-              <Label htmlFor="brand-filter">Brand</Label>
+              <Label htmlFor="brand-filter">{t('brand')}</Label>
               <Input
                 id="brand-filter"
-                placeholder="Brand name..."
+                placeholder={t('brandName')}
                 value={localFilters.brand || ''}
                 onChange={(e) => handleFilterChange('brand', e.target.value)}
               />
@@ -132,26 +136,26 @@ export function ProductFilters({
 
             {/* Data Source Filter */}
             <div className="space-y-2">
-              <Label htmlFor="source-filter">Data Source</Label>
+              <Label htmlFor="source-filter">{t('dataSource')}</Label>
               <Select
                 value={localFilters.dataSource || 'all'}
                 onValueChange={(value) => handleFilterChange('dataSource', value === 'all' ? '' : value)}
               >
                 <SelectTrigger id="source-filter">
-                  <SelectValue placeholder="All sources" />
+                  <SelectValue placeholder={t('allSources')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All sources</SelectItem>
-                  <SelectItem value="api">API Import</SelectItem>
-                  <SelectItem value="manual">Manual Entry</SelectItem>
-                  <SelectItem value="community">Community Sourced</SelectItem>
+                  <SelectItem value="all">{t('allSources')}</SelectItem>
+                  <SelectItem value="api">{t('apiImport')}</SelectItem>
+                  <SelectItem value="manual">{t('manualEntry')}</SelectItem>
+                  <SelectItem value="community">{t('communitySourced')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Verification Status */}
             <div className="space-y-2">
-              <Label htmlFor="verified-filter">Verification Status</Label>
+              <Label htmlFor="verified-filter">{t('verificationStatus')}</Label>
               <Select
                 value={localFilters.verified === undefined ? 'all' : localFilters.verified.toString()}
                 onValueChange={(value) =>
@@ -159,19 +163,19 @@ export function ProductFilters({
                 }
               >
                 <SelectTrigger id="verified-filter">
-                  <SelectValue placeholder="All products" />
+                  <SelectValue placeholder={t('allProducts')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All products</SelectItem>
-                  <SelectItem value="true">Verified only</SelectItem>
-                  <SelectItem value="false">Unverified only</SelectItem>
+                  <SelectItem value="all">{t('allProducts')}</SelectItem>
+                  <SelectItem value="true">{t('verifiedOnly')}</SelectItem>
+                  <SelectItem value="false">{t('unverifiedOnly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Allergen Status */}
             <div className="space-y-2">
-              <Label htmlFor="allergen-filter">Allergen Status</Label>
+              <Label htmlFor="allergen-filter">{t('allergenStatus')}</Label>
               <Select
                 value={localFilters.hasAllergens === undefined ? 'all' : localFilters.hasAllergens.toString()}
                 onValueChange={(value) =>
@@ -179,12 +183,12 @@ export function ProductFilters({
                 }
               >
                 <SelectTrigger id="allergen-filter">
-                  <SelectValue placeholder="All products" />
+                  <SelectValue placeholder={t('allProducts')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All products</SelectItem>
-                  <SelectItem value="true">Contains allergens</SelectItem>
-                  <SelectItem value="false">No allergens</SelectItem>
+                  <SelectItem value="all">{t('allProducts')}</SelectItem>
+                  <SelectItem value="true">{t('containsAllergens')}</SelectItem>
+                  <SelectItem value="false">{t('noAllergens')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -197,11 +201,11 @@ export function ProductFilters({
               onClick={handleClearFilters}
               disabled={activeFiltersCount === 0}
             >
-              Clear Filters
+              {t('clearFilters')}
             </Button>
             <Button onClick={handleApplyFilters}>
               <Search className="h-4 w-4 mr-2" />
-              Apply Filters
+              {t('applyFilters')}
             </Button>
           </div>
 
@@ -209,10 +213,10 @@ export function ProductFilters({
           {activeFiltersCount > 0 && (
             <div className="pt-4 border-t">
               <div className="flex flex-wrap gap-2">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
+                <span className="text-sm text-muted-foreground">{t('activeFilters')}:</span>
                 {localFilters.query && (
                   <Badge variant="outline" className="text-xs">
-                    Query: {localFilters.query}
+                    {t('query')}: {localFilters.query}
                     <button
                       onClick={() => handleFilterChange('query', '')}
                       className="ml-1 hover:text-red-600"
@@ -256,7 +260,7 @@ export function ProductFilters({
                 )}
                 {localFilters.verified !== undefined && (
                   <Badge variant="outline" className="text-xs">
-                    {localFilters.verified ? 'Verified' : 'Unverified'}
+                    {localFilters.verified ? t('verified') : t('unverified')}
                     <button
                       onClick={() => handleFilterChange('verified', undefined)}
                       className="ml-1 hover:text-red-600"
@@ -267,7 +271,7 @@ export function ProductFilters({
                 )}
                 {localFilters.hasAllergens !== undefined && (
                   <Badge variant="outline" className="text-xs">
-                    {localFilters.hasAllergens ? 'Has Allergens' : 'No Allergens'}
+                    {localFilters.hasAllergens ? t('hasAllergens') : t('noAllergens')}
                     <button
                       onClick={() => handleFilterChange('hasAllergens', undefined)}
                       className="ml-1 hover:text-red-600"

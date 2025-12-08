@@ -23,6 +23,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 interface AllergyFormProps {
   allergy?: Allergy | null
@@ -33,6 +34,9 @@ interface AllergyFormProps {
 }
 
 export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: AllergyFormProps) {
+  const t = useTranslations('allergies')
+  const tCommon = useTranslations('common')
+
   const [formData, setFormData] = useState<Partial<Allergy>>({
     nameAr: '',
     nameEn: '',
@@ -79,7 +83,7 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {allergy ? 'Edit Allergy' : 'Create New Allergy'}
+            {allergy ? t('editAllergy') : t('addAllergy')}
           </DialogTitle>
           <DialogDescription>
             {allergy
@@ -93,7 +97,7 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Basic Information</CardTitle>
+              <CardTitle className="text-lg">{t('basicInformation')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -110,7 +114,7 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="nameEn">English Name</Label>
+                  <Label htmlFor="nameEn">{t('englishName')}</Label>
                   <Input
                     id="nameEn"
                     value={formData.nameEn}
@@ -122,7 +126,7 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="descriptionAr">Arabic Description</Label>
+                  <Label htmlFor="descriptionAr">{t('arabicDescription')}</Label>
                   <Textarea
                     id="descriptionAr"
                     value={formData.descriptionAr}
@@ -134,7 +138,7 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="descriptionEn">English Description</Label>
+                  <Label htmlFor="descriptionEn">{t('englishDescription')}</Label>
                   <Textarea
                     id="descriptionEn"
                     value={formData.descriptionEn}
@@ -150,12 +154,12 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
           {/* Allergy Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Allergy Settings</CardTitle>
+              <CardTitle className="text-lg">{t('allergySettings')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Severity Level</Label>
+                  <Label>{t('severityLevel')}</Label>
                   <Select
                     value={formData.severity}
                     onValueChange={(value) => handleChange('severity', value)}
@@ -164,16 +168,16 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
                       <SelectValue placeholder="Select severity" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mild">Mild</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="severe">Severe</SelectItem>
+                      <SelectItem value="mild">{t('mild')}</SelectItem>
+                      <SelectItem value="moderate">{t('moderate')}</SelectItem>
+                      <SelectItem value="severe">{t('severe')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-0.5">
-                    <Label>Active Status</Label>
+                    <Label>{t('activeStatus')}</Label>
                     <p className="text-sm text-muted-foreground">
                       Allow users to select this allergy
                     </p>
@@ -189,10 +193,10 @@ export function AllergyForm({ allergy, open, onClose, onSubmit, loading }: Aller
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : allergy ? 'Update Allergy' : 'Create Allergy'}
+              {loading ? tCommon('loading') : allergy ? t('editAllergy') : t('addAllergy')}
             </Button>
           </DialogFooter>
         </form>

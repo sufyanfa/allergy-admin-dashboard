@@ -10,12 +10,16 @@ import { Button } from '@/components/ui/button'
 import { RefreshCw, Download, Activity } from 'lucide-react'
 import { StatisticsService } from '@/lib/api/statistics'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 interface DashboardOverviewProps {
   className?: string
 }
 
 export function DashboardOverview({ className }: DashboardOverviewProps) {
+  const t = useTranslations('dashboard')
+  const tCommon = useTranslations('common')
+
   const {
     userStatistics,
     productStatistics,
@@ -88,15 +92,15 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
 
       if (format === 'csv') {
         // CSV download is handled automatically in the service
-        alert('Export downloaded successfully!')
+        alert(t('exportSuccess'))
       } else {
         // For JSON, we can show a success message or handle differently
         console.log('Export data:', result)
-        alert('Export completed successfully!')
+        alert(t('exportComplete'))
       }
     } catch (error) {
       console.error('Export failed:', error)
-      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(`${t('exportFailed')}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -104,10 +108,10 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     try {
       console.log('Testing API connection...')
       await StatisticsService.testConnection()
-      alert('✅ CORS connection test successful!')
+      alert(`✅ ${t('connectionSuccess')}`)
     } catch (error) {
       console.error('Connection test failed:', error)
-      alert(`❌ Connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(`❌ ${t('connectionFailed')}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -148,29 +152,29 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-          <p className="text-gray-600 mt-1">Monitor your allergy checker platform performance</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="text-gray-600 mt-1">{t('overview')}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={handleTestConnection} size="sm">
             <Activity className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Test API</span>
-            <span className="sm:hidden">Test</span>
+            <span className="hidden sm:inline">{t('testApi')}</span>
+            <span className="sm:hidden">{t('test')}</span>
           </Button>
           <Button variant="outline" onClick={handleRefreshAll} size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Refresh All</span>
-            <span className="sm:hidden">Refresh</span>
+            <span className="hidden sm:inline">{tCommon('refresh')}</span>
+            <span className="sm:hidden">{tCommon('refresh')}</span>
           </Button>
           <Button variant="outline" onClick={() => handleExport('json')} size="sm">
             <Download className="h-4 w-4 mr-2" />
-            <span className="hidden lg:inline">Export JSON</span>
+            <span className="hidden lg:inline">{tCommon('export')} JSON</span>
             <span className="lg:hidden">JSON</span>
           </Button>
           <Button variant="outline" onClick={() => handleExport('csv')} size="sm">
             <Download className="h-4 w-4 mr-2" />
-            <span className="hidden lg:inline">Export CSV</span>
+            <span className="hidden lg:inline">{tCommon('export')} CSV</span>
             <span className="lg:hidden">CSV</span>
           </Button>
         </div>
@@ -186,54 +190,54 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="Total Users"
+          title={t('totalUsers')}
           value={keyMetrics?.totalUsers || 0}
           change={{
             value: overview?.users.growthRate || 0,
             type: (overview?.users.growthRate || 0) >= 0 ? 'increase' : 'decrease',
-            period: 'vs last period'
+            period: t('vsLastPeriod')
           }}
           icon="users"
-          description="Active and registered users"
+          description={t('activeRegisteredUsers')}
           loading={keyMetricsLoading || overviewLoading}
         />
 
         <StatsCard
-          title="Total Products"
+          title={t('totalProducts')}
           value={keyMetrics?.totalProducts || 0}
           change={{
             value: 5.2,
             type: 'increase',
-            period: 'vs last month'
+            period: t('vsLastMonth')
           }}
           icon="package"
-          description="Products in database"
+          description={t('productsInDatabase')}
           loading={keyMetricsLoading}
         />
 
         <StatsCard
-          title="Total Searches"
+          title={t('totalSearches')}
           value={keyMetrics?.totalSearches || 0}
           change={{
             value: 12.4,
             type: 'increase',
-            period: 'vs last week'
+            period: t('vsLastWeek')
           }}
           icon="activity"
-          description="Search queries performed"
+          description={t('searchQueriesPerformed')}
           loading={keyMetricsLoading}
         />
 
         <StatsCard
-          title="System Uptime"
+          title={t('systemUptime')}
           value={`${((keyMetrics?.systemUptime || 0) * 100).toFixed(1)}%`}
           change={{
             value: 0.1,
             type: 'increase',
-            period: 'vs last month'
+            period: t('vsLastMonth')
           }}
           icon="server"
-          description="Service availability"
+          description={t('serviceAvailability')}
           loading={keyMetricsLoading}
         />
       </div>
@@ -241,7 +245,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       {/* Charts Row 1 - Growth Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <GrowthChart
-          title="User Growth"
+          title={t('userGrowth')}
           data={userGrowth[userGrowthPeriod] || null}
           loading={isLoadingUserStats}
           onPeriodChange={handleUserGrowthPeriodChange}
@@ -250,7 +254,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
         />
 
         <GrowthChart
-          title="Product Growth"
+          title={t('productGrowth')}
           data={productGrowth[productGrowthPeriod] || null}
           loading={isLoadingProductStats}
           onPeriodChange={handleProductGrowthPeriodChange}
@@ -262,35 +266,35 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       {/* Charts Row 2 - Distribution Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <DistributionChart
-          title="User Distribution by Role"
+          title={t('userDistributionByRole')}
           data={userDemographicsData}
           loading={isLoadingUserStats}
           onRefresh={fetchUserStatistics}
           centerText={userStatistics ? {
             primary: userStatistics.overview.totalUsers.toLocaleString(),
-            secondary: 'Total Users'
+            secondary: t('totalUsers')
           } : undefined}
         />
 
         <DistributionChart
-          title="Product Categories"
+          title={t('productCategories')}
           data={productCategoriesData}
           loading={isLoadingProductStats}
           onRefresh={fetchProductStatistics}
           centerText={productStatistics ? {
             primary: productStatistics.overview.categoriesCount.toString(),
-            secondary: 'Categories'
+            secondary: t('categories')
           } : undefined}
         />
 
         <DistributionChart
-          title="Product Data Sources"
+          title={t('productDataSources')}
           data={productDataSourcesData}
           loading={isLoadingProductStats}
           onRefresh={fetchProductStatistics}
           centerText={productStatistics ? {
             primary: (productStatistics.overview.avgConfidenceScore * 100).toFixed(0) + '%',
-            secondary: 'Avg Quality'
+            secondary: t('avgQuality')
           } : undefined}
         />
       </div>
@@ -305,34 +309,34 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
         <div className="lg:col-span-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
-              title="Searches Today"
+              title={t('searchesToday')}
               value={activityStatistics?.overview.searchesToday || 0}
               icon="activity"
-              description="Today's search activity"
+              description={t('todaySearchActivity')}
               loading={isLoadingActivityStats}
             />
 
             <StatsCard
-              title="Avg Search Time"
+              title={t('avgSearchTime')}
               value={`${activityStatistics?.overview.avgSearchTime || 0}ms`}
               icon="activity"
-              description="Response performance"
+              description={t('responsePerformance')}
               loading={isLoadingActivityStats}
             />
 
             <StatsCard
-              title="Contributions"
+              title={t('contributions')}
               value={activityStatistics?.overview.contributionsToday || 0}
               icon="users"
-              description="User contributions today"
+              description={t('userContributionsToday')}
               loading={isLoadingActivityStats}
             />
 
             <StatsCard
-              title="Verified Products"
+              title={t('verifiedProducts')}
               value={`${((productStatistics?.quality.verificationRate || 0) * 100).toFixed(0)}%`}
               icon="package"
-              description="Product verification rate"
+              description={t('productVerificationRate')}
               loading={isLoadingProductStats}
             />
           </div>

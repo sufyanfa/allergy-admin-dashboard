@@ -20,6 +20,7 @@ import { RefreshCw, Search, Filter, CheckCircle, XCircle } from 'lucide-react'
 import { ContributionsTable } from '@/components/tables/contributions-table'
 import { ContributionDetailModal } from './contribution-detail-modal'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/hooks/use-translations'
 import { Contribution, ContributionStatus, ContributionType } from '@/types'
 import { toast } from 'sonner'
 
@@ -28,6 +29,10 @@ interface ContributionsOverviewProps {
 }
 
 export function ContributionsOverview({ className }: ContributionsOverviewProps) {
+  const t = useTranslations('contributions')
+  const tCommon = useTranslations('common')
+  const tMessages = useTranslations('messages')
+
   const {
     contributions,
     overview,
@@ -219,15 +224,15 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Contributions Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Review and manage user contributions
+            {t('title')}
           </p>
         </div>
         <div className="flex space-x-2">
           <Button type="button" onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {tCommon('refresh')}
           </Button>
         </div>
       </div>
@@ -239,7 +244,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
             <div className="flex items-center justify-between">
               <p className="text-red-600">{error}</p>
               <Button type="button" onClick={clearError} variant="ghost" size="sm">
-                Dismiss
+                {tCommon('close')}
               </Button>
             </div>
           </CardContent>
@@ -249,34 +254,34 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
       {/* Overview Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Contributions"
+          title={t("totalContributions")}
           value={overview?.totalContributions || 0}
           icon="git-pull-request"
-          description="All submissions"
+          description={t("allSubmissions")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="Pending Review"
+          title={t("pendingReview")}
           value={overview?.pendingContributions || 0}
           icon="clock"
-          description="Awaiting review"
+          description={t("awaitingReview")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="Approved"
+          title={t("approved")}
           value={overview?.approvedContributions || 0}
           icon="check-circle"
-          description="Accepted contributions"
+          description={t("acceptedContributions")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="Rejected"
+          title={t("rejected")}
           value={overview?.rejectedContributions || 0}
           icon="x-circle"
-          description="Declined contributions"
+          description={t("declinedContributions")}
           loading={isLoading}
         />
       </div>
@@ -284,7 +289,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
       {/* Distribution Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DistributionChart
-          title="Contribution Types"
+          title={t("contributionTypes")}
           data={typeDistributionData}
           loading={isLoading}
           onRefresh={handleRefresh}
@@ -295,10 +300,10 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
         />
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('quickStats')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Approval Rate</span>
+              <span className="text-sm text-muted-foreground">{t('approvalRate')}</span>
               <span className="font-semibold">
                 {overview && overview.totalContributions > 0
                   ? Math.round((overview.approvedContributions / overview.totalContributions) * 100)
@@ -306,7 +311,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Pending Rate</span>
+              <span className="text-sm text-muted-foreground">{t('pendingRate')}</span>
               <span className="font-semibold">
                 {overview && overview.totalContributions > 0
                   ? Math.round((overview.pendingContributions / overview.totalContributions) * 100)
@@ -314,7 +319,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Selected</span>
+              <span className="text-sm text-muted-foreground">{tCommon('selected')}</span>
               <Badge variant="secondary">{selectedIds.length}</Badge>
             </div>
           </div>
@@ -327,7 +332,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <p className="text-sm text-blue-900">
-                {selectedIds.length} contribution(s) selected
+                {selectedIds.length} {t('contributionsSelected')}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -336,7 +341,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
                   variant="default"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve Selected
+                  {t('approveSelected')}
                 </Button>
                 <Button
                   onClick={handleBulkReject}
@@ -344,14 +349,14 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
                   variant="destructive"
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  Reject Selected
+                  {t('rejectSelected')}
                 </Button>
                 <Button
                   onClick={clearSelection}
                   size="sm"
                   variant="outline"
                 >
-                  Clear Selection
+                  {tCommon('clearSelection')}
                 </Button>
               </div>
             </div>
@@ -380,7 +385,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
             <div className="flex space-x-2">
               <Button type="button" onClick={handleSearch} size="sm">
                 <Search className="h-4 w-4 mr-2" />
-                Search
+                {tCommon('search')}
               </Button>
               <Button
                 onClick={() => setShowFilters(!showFilters)}
@@ -389,7 +394,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
                 type="button"
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Filters
+                {tCommon('filter')}
                 {(filters.status || filters.contributionType) && (
                   <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
                     !
@@ -403,7 +408,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
             <div className="mt-4 pt-4 border-t">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Status</Label>
+                  <Label>{tCommon('status')}</Label>
                   <Select
                     value={filters.status || 'all'}
                     onValueChange={handleStatusFilter}
@@ -412,16 +417,16 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                      <SelectItem value="pending">{t('pending')}</SelectItem>
+                      <SelectItem value="approved">{t('approved')}</SelectItem>
+                      <SelectItem value="rejected">{t('rejected')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Type</Label>
+                  <Label>{tCommon('type')}</Label>
                   <Select
                     value={filters.contributionType || 'all'}
                     onValueChange={handleTypeFilter}
@@ -430,11 +435,11 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="new_product">New Product</SelectItem>
-                      <SelectItem value="edit_ingredients">Edit Ingredients</SelectItem>
-                      <SelectItem value="add_image">Add Image</SelectItem>
-                      <SelectItem value="report_error">Report Error</SelectItem>
+                      <SelectItem value="all">{t('allTypes')}</SelectItem>
+                      <SelectItem value="new_product">{t('newProduct')}</SelectItem>
+                      <SelectItem value="edit_ingredients">{t('editIngredients')}</SelectItem>
+                      <SelectItem value="add_image">{t('addImage')}</SelectItem>
+                      <SelectItem value="report_error">{t('reportError')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -446,7 +451,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
                     variant="outline"
                     className="w-full"
                   >
-                    Clear Filters
+                    {tCommon('reset')}
                   </Button>
                 </div>
               </div>

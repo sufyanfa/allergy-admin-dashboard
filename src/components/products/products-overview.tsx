@@ -14,6 +14,7 @@ import { ProductForm } from '@/components/forms/product-form'
 import { BarcodeScanner } from '@/components/forms/barcode-scanner'
 import { ProductFilters } from '@/components/forms/product-filters'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/hooks/use-translations'
 import { ProductCategory } from '@/types'
 
 interface ProductsOverviewProps {
@@ -21,6 +22,10 @@ interface ProductsOverviewProps {
 }
 
 export function ProductsOverview({ className }: ProductsOverviewProps) {
+  const t = useTranslations('products')
+  const tCommon = useTranslations('common')
+  const tMessages = useTranslations('messages')
+
   const {
     products,
     categories,
@@ -143,27 +148,27 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage products, scan barcodes, and check allergies
+            {t('title')}
           </p>
         </div>
         <div className="flex space-x-2">
           <Button type="button" onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {tCommon('refresh')}
           </Button>
           <Button type="button" onClick={handleExport} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {tCommon('export')}
           </Button>
           <Button type="button" onClick={() => setShowScanner(true)} variant="outline">
             <ScanLine className="h-4 w-4 mr-2" />
-            Scan Barcode
+            {t('scanProduct')}
           </Button>
           <Button type="button" onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Product
+            {t('addProduct')}
           </Button>
         </div>
       </div>
@@ -175,7 +180,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
             <div className="flex items-center justify-between">
               <p className="text-red-600">{error}</p>
               <Button type="button" onClick={clearError} variant="ghost" size="sm">
-                Dismiss
+                {tCommon('close')}
               </Button>
             </div>
           </CardContent>
@@ -185,7 +190,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
       {/* Overview Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Products"
+          title={t("totalProducts")}
           value={overview?.totalProducts || 0}
           icon="package"
           description="Across all sources"
@@ -193,23 +198,23 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
         />
 
         <StatsCard
-          title="Verified Products"
+          title={t("verifiedProducts")}
           value={overview?.verifiedProducts || 0}
           icon="shield-check"
-          description="Admin verified"
+          description={t("adminVerified")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="Categories"
+          title={t("categories")}
           value={overview?.categoriesCount || 0}
           icon="grid-3x3"
-          description="Product categories"
+          description={t("productCategories")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="Data Sources"
+          title={t("dataSources")}
           value={overview?.dataSourcesCount || 0}
           icon="database"
           description="API, Manual, Community"
@@ -220,7 +225,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
       {/* Distribution Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DistributionChart
-          title="Product Categories"
+          title={t("productCategories")}
           data={categoriesChartData}
           loading={isLoading}
           onRefresh={handleRefresh}
@@ -231,7 +236,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
         />
 
         <DistributionChart
-          title="Data Sources"
+          title={t("dataSources")}
           data={dataSourcesChartData}
           loading={isLoading}
           onRefresh={handleRefresh}
@@ -277,7 +282,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
                 ) : (
                   <>
                     <Search className="h-4 w-4 mr-2" />
-                    Search
+                    {tCommon('search')}
                   </>
                 )}
               </Button>
@@ -291,7 +296,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
                 type="button"
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Filters
+                {tCommon('filter')}
                 {Object.values(filters).some(v => v !== '' && v !== undefined) && (
                   <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
                     !
@@ -355,7 +360,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
                 variant="outline"
                 size="sm"
               >
-                Clear Search
+                {tCommon('reset')}
               </Button>
             </div>
           </CardContent>

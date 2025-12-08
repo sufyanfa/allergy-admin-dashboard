@@ -31,7 +31,14 @@ interface UsersTableProps {
   onUpdateStatus: (userId: string, status: 'active' | 'inactive' | 'suspended') => void
 }
 
+import { useTranslations } from '@/lib/hooks/use-translations'
+import { useLocale } from '@/lib/hooks/use-translations'
+
 export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }: UsersTableProps) {
+  const t = useTranslations('users')
+  const tCommon = useTranslations('common')
+  const locale = useLocale()
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -86,19 +93,19 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>User</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Joined</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t('user')}</TableHead>
+            <TableHead>{t('contact')}</TableHead>
+            <TableHead>{t('role')}</TableHead>
+            <TableHead>{t('status')}</TableHead>
+            <TableHead>{t('joined')}</TableHead>
+            <TableHead className="text-right">{tCommon('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                No users found
+                {t('noUsersFound')}
               </TableCell>
             </TableRow>
           ) : (
@@ -114,7 +121,7 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
                     </Avatar>
                     <div>
                       <div className="font-medium">
-                        {user.fullName || user.username || 'Unnamed User'}
+                        {user.fullName || user.username || t('unnamedUser')}
                       </div>
                       {user.username && user.fullName && (
                         <div className="text-sm text-muted-foreground">
@@ -156,10 +163,10 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
                       <DropdownMenuItem onClick={() => onEdit(user)}>
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit User
+                        {t('editUser')}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
 
@@ -169,7 +176,7 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
                           className="text-orange-600"
                         >
                           <Ban className="mr-2 h-4 w-4" />
-                          Suspend User
+                          {t('suspendUser')}
                         </DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem
@@ -177,7 +184,7 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
                           className="text-green-600"
                         >
                           <CheckCircle className="mr-2 h-4 w-4" />
-                          Activate User
+                          {t('activateUser')}
                         </DropdownMenuItem>
                       )}
 
@@ -187,7 +194,7 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
                         className="text-red-600"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete User
+                        {t('deleteUser')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

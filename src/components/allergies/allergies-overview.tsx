@@ -20,12 +20,17 @@ import { AllergyForm } from '@/components/forms/allergy-form'
 import { Allergy } from '@/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 interface AllergiesOverviewProps {
   className?: string
 }
 
 export function AllergiesOverview({ className }: AllergiesOverviewProps) {
+  const t = useTranslations('allergies')
+  const tCommon = useTranslations('common')
+  const tMessages = useTranslations('messages')
+
   const {
     allergies,
     overview,
@@ -130,7 +135,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
       } else {
         // Ensure required fields for creation
         if (!data.nameAr) {
-          toast.error('Arabic name is required')
+          toast.error(t('validation.nameArRequired'))
           return
         }
         const allergyData = {
@@ -142,30 +147,30 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
           isActive: data.isActive ?? true
         }
         await createAllergy(allergyData)
-        toast.success('Allergy created successfully')
+        toast.success(tCommon('messages.created'))
       }
       setIsFormOpen(false)
     } catch (error: unknown) {
-      toast.error((error as Error)?.message || 'Failed to save allergy')
+      toast.error((error as Error)?.message || tCommon('messages.error'))
     }
   }
 
   // Transform data for charts
   const severityChartData = overview?.severityDistribution ? [
     {
-      label: 'Mild',
+      label: t('mild'),
       value: overview.severityDistribution.mild,
       percentage: overview.totalAllergies ? (overview.severityDistribution.mild / overview.totalAllergies * 100) : 0,
       color: '#10B981'
     },
     {
-      label: 'Moderate',
+      label: t('moderate'),
       value: overview.severityDistribution.moderate,
       percentage: overview.totalAllergies ? (overview.severityDistribution.moderate / overview.totalAllergies * 100) : 0,
       color: '#F59E0B'
     },
     {
-      label: 'Severe',
+      label: t('severe'),
       value: overview.severityDistribution.severe,
       percentage: overview.totalAllergies ? (overview.severityDistribution.severe / overview.totalAllergies * 100) : 0,
       color: '#EF4444'
@@ -186,23 +191,23 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Allergies Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage allergy types, severities, and user assignments
+            {t('title')}
           </p>
         </div>
         <div className="flex space-x-2">
           <Button onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {tCommon('refresh')}
           </Button>
           <Button onClick={handleExport} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {tCommon('export')}
           </Button>
           <Button onClick={handleCreateAllergy}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Allergy
+            {t('addAllergy')}
           </Button>
         </div>
       </div>
@@ -214,7 +219,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
             <div className="flex items-center justify-between">
               <p className="text-red-600">{error}</p>
               <Button onClick={clearError} variant="ghost" size="sm">
-                Dismiss
+                {tCommon('close')}
               </Button>
             </div>
           </CardContent>
@@ -224,34 +229,34 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
       {/* Overview Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Allergies"
+          title={t("totalAllergies")}
           value={overview?.totalAllergies || 0}
           icon="package"
-          description="Allergy types available"
+          description={t("allergyTypesAvailable")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="Active Allergies"
+          title={t("activeAllergies")}
           value={overview?.activeAllergies || 0}
           icon="activity"
-          description="Currently used by users"
+          description={t("currentlyUsed")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="User Assignments"
+          title={t("userAssignments")}
           value={overview?.userAllergiesCount || 0}
           icon="users"
-          description="Total user allergy assignments"
+          description={t("totalAssignments")}
           loading={isLoading}
         />
 
         <StatsCard
-          title="Severe Allergies"
+          title={t("severeAllergies")}
           value={overview?.severityDistribution?.severe || 0}
           icon="shield-check"
-          description="High severity allergies"
+          description={t("highRiskAllergies")}
           loading={isLoading}
         />
       </div>
@@ -259,13 +264,13 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
       {/* Severity Distribution Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DistributionChart
-          title="Severity Distribution"
+          title={t("severityDistribution")}
           data={severityChartData}
           loading={isLoading}
           onRefresh={handleRefresh}
           centerText={overview ? {
             primary: overview.totalAllergies.toString(),
-            secondary: 'Total Allergies'
+            secondary: t('totalAllergies')
           } : undefined}
         />
 
@@ -273,29 +278,29 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
           <CardHeader>
             <CardTitle className="flex items-center">
               <AlertTriangle className="h-5 w-5 mr-2" />
-              Severity Breakdown
+              {t("severityBreakdown")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Badge variant="default" className="mr-2">Mild</Badge>
-                  <span className="text-sm text-muted-foreground">Low risk reactions</span>
+                  <Badge variant="default" className="mr-2">{t('mild')}</Badge>
+                  <span className="text-sm text-muted-foreground">{t('lowRiskReactions')}</span>
                 </div>
                 <span className="font-semibold">{overview?.severityDistribution?.mild || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Badge variant="secondary" className="mr-2">Moderate</Badge>
-                  <span className="text-sm text-muted-foreground">Medium risk reactions</span>
+                  <Badge variant="secondary" className="mr-2">{t('moderate')}</Badge>
+                  <span className="text-sm text-muted-foreground">{t('mediumRiskReactions')}</span>
                 </div>
                 <span className="font-semibold">{overview?.severityDistribution?.moderate || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Badge variant="destructive" className="mr-2">Severe</Badge>
-                  <span className="text-sm text-muted-foreground">High risk reactions</span>
+                  <Badge variant="destructive" className="mr-2">{t('severe')}</Badge>
+                  <span className="text-sm text-muted-foreground">{t('highRiskReactions')}</span>
                 </div>
                 <span className="font-semibold">{overview?.severityDistribution?.severe || 0}</span>
               </div>
@@ -312,7 +317,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search allergies by name or description..."
+                  placeholder={t("searchPlaceholder")}
                   value={localSearchQuery}
                   onChange={(e) => setLocalSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -323,7 +328,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
             <div className="flex space-x-2">
               <Button onClick={handleSearch} size="sm">
                 <Search className="h-4 w-4 mr-2" />
-                Search
+                {tCommon('search')}
               </Button>
               <Button
                 onClick={() => setShowFilters(!showFilters)}
@@ -331,7 +336,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
                 size="sm"
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Filters
+                {tCommon('filter')}
                 {(severityFilter || activeFilter) && (
                   <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
                     !
@@ -352,13 +357,13 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Severities" />
+                    <SelectValue placeholder={t("allSeverities")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Severities</SelectItem>
-                    <SelectItem value="mild">Mild</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="severe">Severe</SelectItem>
+                    <SelectItem value="all">{t("allSeverities")}</SelectItem>
+                    <SelectItem value="mild">{t("mild")}</SelectItem>
+                    <SelectItem value="moderate">{t("moderate")}</SelectItem>
+                    <SelectItem value="severe">{t("severe")}</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -370,12 +375,12 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
+                    <SelectValue placeholder={t("allStatus")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="true">Active</SelectItem>
-                    <SelectItem value="false">Inactive</SelectItem>
+                    <SelectItem value="all">{t("allStatus")}</SelectItem>
+                    <SelectItem value="true">{tCommon("active")}</SelectItem>
+                    <SelectItem value="false">{tCommon("inactive")}</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -388,7 +393,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
                   variant="outline"
                   size="sm"
                 >
-                  Clear Filters
+                  {t("clearFilters")}
                 </Button>
               </div>
             </div>
@@ -423,7 +428,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
                         {allergy.severity}
                       </Badge>
                       {allergy.isActive && (
-                        <Badge variant="outline">Active</Badge>
+                        <Badge variant="outline">{tCommon("active")}</Badge>
                       )}
                     </div>
                     {allergy.descriptionAr && (
@@ -434,14 +439,14 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-muted-foreground">
-                      {allergy.userCount || 0} users
+                      {allergy.userCount || 0} {tCommon("users").toLowerCase()}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEditAllergy(allergy)}
                     >
-                      Edit
+                      {tCommon('edit')}
                     </Button>
                   </div>
                 </div>
@@ -449,7 +454,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
 
               {allergies.length === 0 && !isLoading && (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No allergies found</p>
+                  <p className="text-muted-foreground">{t("noAllergiesFound")}</p>
                 </div>
               )}
             </div>
