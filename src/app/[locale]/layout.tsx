@@ -23,6 +23,8 @@ export const metadata: Metadata = {
     description: 'Admin dashboard for managing allergy checker application',
 };
 
+export const runtime = 'edge';
+
 export default async function LocaleLayout({
     children,
     params
