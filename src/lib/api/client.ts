@@ -19,7 +19,8 @@ class ApiClient {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || '',
+        'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
+        'User-Agent': 'Allergy-Checker-Admin/1.0.0',
       },
       withCredentials: true, // Important for CORS with credentials
     })
