@@ -521,6 +521,12 @@ export interface Contribution {
   reviewedAt: string | null
   notes: string | null
   createdAt: string
+  // Error reporting fields
+  errorType: string | null
+  errorDescription: string | null
+  suggestedCorrection: string | null
+  evidenceImageUrl: string | null
+  pointsAwarded: number | null
   user: {
     id: string
     name: string

@@ -20,6 +20,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { Input } from '@/components/ui/input'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 interface EditedContributionData {
   productNameAr?: string
@@ -53,6 +54,8 @@ export function ContributionDetailModal({
   onApprove,
   onReject
 }: ContributionDetailModalProps) {
+  const t = useTranslations('contributions')
+  const tCommon = useTranslations('common')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -296,6 +299,65 @@ export function ContributionDetailModal({
                     <p className="font-medium mt-1">{contribution.contributionData?.category || 'N/A'}</p>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Product Error Report Details */}
+          {contribution.contributionType === 'report_error' && (
+            <div className="space-y-4">
+              <h3 className="font-semibold">{t('errorReportDetails')}</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {contribution.errorType && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">{t('errorType')}:</Label>
+                    <div className="mt-1">
+                      <Badge variant="outline" className="text-base">
+                        {t(`errorTypes.${contribution.errorType}` as any)}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+                {contribution.errorDescription && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">{t('description')}:</Label>
+                    <p className="text-sm p-3 rounded-lg border bg-muted/50 mt-1">
+                      {contribution.errorDescription}
+                    </p>
+                  </div>
+                )}
+                {contribution.suggestedCorrection && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">{t('suggestedCorrection')}:</Label>
+                    <p className="text-sm p-3 rounded-lg border bg-muted/50 mt-1">
+                      {contribution.suggestedCorrection}
+                    </p>
+                  </div>
+                )}
+                {contribution.evidenceImageUrl && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">{t('evidencePhoto')}:</Label>
+                    <div className="relative aspect-video rounded-lg border overflow-hidden bg-muted mt-1">
+                      <Image
+                        src={contribution.evidenceImageUrl}
+                        alt={t('evidencePhoto')}
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  </div>
+                )}
+                {contribution.pointsAwarded !== null && contribution.pointsAwarded > 0 && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">{t('pointsAwarded')}:</Label>
+                    <div className="mt-1">
+                      <Badge variant="default" className="text-base">
+                        {contribution.pointsAwarded} {t('points')}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
