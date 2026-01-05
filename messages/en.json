@@ -49,6 +49,7 @@
         "users": "Users",
         "products": "Products",
         "lists": "Lists",
+        "groups": "Groups",
         "allergies": "Allergies",
         "analytics": "Analytics",
         "contributions": "Contributions",
@@ -615,5 +616,20 @@
         "tryAgain": "Try Again",
         "totalSearches": "Total Searches",
         "avgSuccessRate": "Avg Success Rate"
+    },
+    "groups": {
+        "title": "Community Groups",
+        "createNew": "Create New Group",
+        "overviewDescription": "Manage allergen-based community groups and their content",
+        "nameAr": "Name (Arabic)",
+        "nameEn": "Name (English)",
+        "description": "Description",
+        "postCount": "Posts",
+        "participants": "Participants",
+        "actions": "Actions",
+        "viewDetails": "View Details",
+        "noGroups": "No groups found",
+        "loading": "Loading groups...",
+        "error": "Failed to load groups"
     }
 }

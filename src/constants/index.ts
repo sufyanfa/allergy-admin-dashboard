@@ -115,6 +115,12 @@ export const NAVIGATION_ITEMS = [
     icon: 'AlertTriangle',
   },
   {
+    title: 'Groups',
+    translationKey: 'groups',
+    href: '/groups',
+    icon: 'MessageSquare',
+  },
+  {
     title: 'Contributions',
     translationKey: 'contributions',
     href: '/contributions',
