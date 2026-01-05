@@ -103,6 +103,12 @@ export const NAVIGATION_ITEMS = [
     icon: 'Package',
   },
   {
+    title: 'Lists',
+    translationKey: 'lists',
+    href: '/lists',
+    icon: 'List',
+  },
+  {
     title: 'Allergies',
     translationKey: 'allergies',
     href: '/allergies',

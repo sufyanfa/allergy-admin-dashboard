@@ -9,6 +9,8 @@ import {
   Minus,
   Users,
   Package,
+  List,
+  Share2,
   Activity,
   Server,
   ShieldCheck,
@@ -24,7 +26,7 @@ interface StatsCardProps {
     type: 'increase' | 'decrease' | 'neutral'
     period?: string
   }
-  icon?: 'users' | 'package' | 'activity' | 'server' | 'shield-check' | 'grid-3x3' | 'database'
+  icon?: 'users' | 'package' | 'list' | 'share-2' | 'activity' | 'server' | 'shield-check' | 'grid-3x3' | 'database'
   description?: string
   className?: string
   loading?: boolean
@@ -33,6 +35,8 @@ interface StatsCardProps {
 const iconMap = {
   users: Users,
   package: Package,
+  list: List,
+  'share-2': Share2,
   activity: Activity,
   server: Server,
   'shield-check': ShieldCheck,
