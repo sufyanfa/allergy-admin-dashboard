@@ -1,12 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    // Disable linting during build for production deployment
-    ignoreDuringBuilds: true,
+    // Enable linting during build to maintain code quality
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Disable type checking during build (for quick deployment)
-    ignoreBuildErrors: true,
+    // Enable type checking during build to prevent runtime errors
+    ignoreBuildErrors: false,
   },
   images: {
     domains: ['localhost'],

@@ -38,14 +38,11 @@ function base64UrlDecode(str: string): string {
     }
 
     // Decode using atob (available in edge runtime)
-    const decoded = atob(base64)
+    const binString = atob(base64)
 
-    // Convert to UTF-8
-    return decodeURIComponent(
-      decoded.split('').map((c) => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-      }).join('')
-    )
+    // Convert to Uint8Array and decode using TextDecoder (standard & faster)
+    const bytes = Uint8Array.from(binString, (c) => c.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
   } catch {
     return ''
   }
