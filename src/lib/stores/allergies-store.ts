@@ -128,7 +128,13 @@ export const useAllergiesStore = create<AllergiesStore>()(
           if (response.success && response.data) {
             set({
               allergies: response.data.allergies,
-              pagination: response.data.pagination,
+              pagination: {
+                page: Math.floor(response.data.pagination.offset / response.data.pagination.limit) + 1,
+                limit: response.data.pagination.limit,
+                total: response.data.pagination.total,
+                pages: response.data.pagination.pages,
+                hasMore: response.data.pagination.offset + response.data.pagination.limit < response.data.pagination.total
+              },
               isLoading: false
             })
           } else {

@@ -33,6 +33,7 @@ interface EditedContributionData {
   extractedIngredientsEn?: string
   aiConfidence?: number
   notes?: string
+  [key: string]: string | number | undefined
 }
 
 interface ContributionDetailModalProps {
@@ -152,345 +153,345 @@ export function ContributionDetailModal({
             <p className="text-sm text-muted-foreground">No contribution data available</p>
           </div>
         ) : (
-        <div className="space-y-6">
-          {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <User className="h-4 w-4" />
-                <span>Contributor</span>
-              </div>
-              <div className="font-medium">
-                {contribution.user?.name || 'Unknown'}
-                <span className="text-sm text-muted-foreground ml-2">
-                  @{contribution.user?.username || 'unknown'}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>Submitted</span>
-              </div>
-              <div className="font-medium">
-                {format(new Date(contribution.createdAt), 'PPP')}
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <FileText className="h-4 w-4" />
-                <span>Type</span>
-              </div>
-              <div className="font-medium capitalize">
-                {contribution.contributionType.replace(/_/g, ' ')}
-              </div>
-            </div>
-
-            {contribution.contributionData?.aiConfidence && (
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Package className="h-4 w-4" />
-                  <span>AI Confidence</span>
+                  <User className="h-4 w-4" />
+                  <span>Contributor</span>
                 </div>
-                <div className={cn('font-bold text-lg', getConfidenceColor(contribution.contributionData.aiConfidence))}>
-                  {contribution.contributionData.aiConfidence}%
+                <div className="font-medium">
+                  {contribution.user?.name || 'Unknown'}
+                  <span className="text-sm text-muted-foreground ml-2">
+                    @{contribution.user?.username || 'unknown'}
+                  </span>
                 </div>
               </div>
-            )}
-          </div>
 
-          <Separator />
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>Submitted</span>
+                </div>
+                <div className="font-medium">
+                  {format(new Date(contribution.createdAt), 'PPP')}
+                </div>
+              </div>
 
-          {/* Product Information */}
-          {contribution.contributionType === 'new_product' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Product Information</h3>
-                {contribution.status === 'pending' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
-                    type="button"
-                  >
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    {isEditing ? 'Cancel Edit' : 'Edit'}
-                  </Button>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <Label className="text-muted-foreground">Product Name (AR):</Label>
-                  {isEditing ? (
-                    <Input
-                      value={getFieldValue('productNameAr', contribution.contributionData?.productNameAr || '')}
-                      onChange={(e) => handleEditChange('productNameAr', e.target.value)}
-                      className="mt-1"
-                      placeholder="اسم المنتج بالعربية"
-                    />
-                  ) : (
-                    <p className="font-medium mt-1">{contribution.contributionData?.productNameAr || 'N/A'}</p>
-                  )}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <FileText className="h-4 w-4" />
+                  <span>Type</span>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Product Name (EN):</Label>
-                  {isEditing ? (
-                    <Input
-                      value={getFieldValue('productNameEn', contribution.contributionData?.productNameEn || '')}
-                      onChange={(e) => handleEditChange('productNameEn', e.target.value)}
-                      className="mt-1"
-                      placeholder="Product Name in English"
-                    />
-                  ) : (
-                    <p className="font-medium mt-1">{contribution.contributionData?.productNameEn || 'N/A'}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Brand (AR):</Label>
-                  {isEditing ? (
-                    <Input
-                      value={getFieldValue('brandAr', contribution.contributionData?.brandAr || '')}
-                      onChange={(e) => handleEditChange('brandAr', e.target.value)}
-                      className="mt-1"
-                      placeholder="العلامة التجارية بالعربية"
-                    />
-                  ) : (
-                    <p className="font-medium mt-1">{contribution.contributionData?.brandAr || 'N/A'}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Brand (EN):</Label>
-                  {isEditing ? (
-                    <Input
-                      value={getFieldValue('brandEn', contribution.contributionData?.brandEn || '')}
-                      onChange={(e) => handleEditChange('brandEn', e.target.value)}
-                      className="mt-1"
-                      placeholder="Brand in English"
-                    />
-                  ) : (
-                    <p className="font-medium mt-1">{contribution.contributionData?.brandEn || 'N/A'}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Barcode:</Label>
-                  {isEditing ? (
-                    <Input
-                      value={getFieldValue('barcode', contribution.contributionData?.barcode || '')}
-                      onChange={(e) => handleEditChange('barcode', e.target.value)}
-                      className="mt-1"
-                      placeholder="Barcode"
-                    />
-                  ) : (
-                    <p className="font-medium mt-1">{contribution.contributionData?.barcode || 'N/A'}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Category:</Label>
-                  {isEditing ? (
-                    <Input
-                      value={getFieldValue('category', contribution.contributionData?.category || '')}
-                      onChange={(e) => handleEditChange('category', e.target.value)}
-                      className="mt-1"
-                      placeholder="Category"
-                    />
-                  ) : (
-                    <p className="font-medium mt-1">{contribution.contributionData?.category || 'N/A'}</p>
-                  )}
+                <div className="font-medium capitalize">
+                  {contribution.contributionType.replace(/_/g, ' ')}
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Product Error Report Details */}
-          {contribution.contributionType === 'report_error' && (
-            <div className="space-y-4">
-              <h3 className="font-semibold">{t('errorReportDetails')}</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                {contribution.errorType && (
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">{t('errorType')}:</Label>
-                    <div className="mt-1">
-                      <Badge variant="outline" className="text-base">
-                        {t(`errorTypes.${contribution.errorType}` as any)}
-                      </Badge>
-                    </div>
+              {contribution.contributionData?.aiConfidence && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Package className="h-4 w-4" />
+                    <span>AI Confidence</span>
                   </div>
-                )}
-                {contribution.errorDescription && (
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">{t('description')}:</Label>
-                    <p className="text-sm p-3 rounded-lg border bg-muted/50 mt-1">
-                      {contribution.errorDescription}
-                    </p>
+                  <div className={cn('font-bold text-lg', getConfidenceColor(contribution.contributionData.aiConfidence))}>
+                    {contribution.contributionData.aiConfidence}%
                   </div>
-                )}
-                {contribution.suggestedCorrection && (
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">{t('suggestedCorrection')}:</Label>
-                    <p className="text-sm p-3 rounded-lg border bg-muted/50 mt-1">
-                      {contribution.suggestedCorrection}
-                    </p>
-                  </div>
-                )}
-                {contribution.evidenceImageUrl && (
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">{t('evidencePhoto')}:</Label>
-                    <div className="relative aspect-video rounded-lg border overflow-hidden bg-muted mt-1">
-                      <Image
-                        src={contribution.evidenceImageUrl}
-                        alt={t('evidencePhoto')}
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  </div>
-                )}
-                {contribution.pointsAwarded !== null && contribution.pointsAwarded > 0 && (
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">{t('pointsAwarded')}:</Label>
-                    <div className="mt-1">
-                      <Badge variant="default" className="text-base">
-                        {contribution.pointsAwarded} {t('points')}
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Existing Product */}
-          {contribution.product && (
-            <div className="space-y-2">
-              <h3 className="font-semibold">Related Product</h3>
-              <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/50">
-                <Package className="h-4 w-4" />
-                <div className="flex-1">
-                  <p className="font-medium">{contribution.product.nameAr}</p>
-                  <p className="text-sm text-muted-foreground">{contribution.product.barcode}</p>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <a href={`/products/${contribution.product.id}`} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Ingredients */}
-          {(contribution.contributionData?.extractedIngredientsAr || contribution.contributionData?.extractedIngredientsEn) && (
-            <div className="space-y-4">
-              <h3 className="font-semibold">Extracted Ingredients</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(contribution.contributionData?.extractedIngredientsAr || isEditing) && (
-                  <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">Arabic:</Label>
-                    {isEditing ? (
-                      <Textarea
-                        value={getFieldValue('extractedIngredientsAr', contribution.contributionData?.extractedIngredientsAr || '')}
-                        onChange={(e) => handleEditChange('extractedIngredientsAr', e.target.value)}
-                        className="font-arabic min-h-[100px]"
-                        placeholder="المكونات بالعربية"
-                      />
-                    ) : (
-                      <p className="text-sm p-3 rounded-lg border bg-muted/50 font-arabic">
-                        {contribution.contributionData.extractedIngredientsAr}
-                      </p>
-                    )}
-                  </div>
-                )}
-                {(contribution.contributionData?.extractedIngredientsEn || isEditing) && (
-                  <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">English:</Label>
-                    {isEditing ? (
-                      <Textarea
-                        value={getFieldValue('extractedIngredientsEn', contribution.contributionData?.extractedIngredientsEn || '')}
-                        onChange={(e) => handleEditChange('extractedIngredientsEn', e.target.value)}
-                        className="min-h-[100px]"
-                        placeholder="Ingredients in English"
-                      />
-                    ) : (
-                      <p className="text-sm p-3 rounded-lg border bg-muted/50">
-                        {contribution.contributionData.extractedIngredientsEn}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Images */}
-          {(contribution.contributionData?.frontImageUrl || contribution.contributionData?.ingredientsImageUrl) && (
-            <div className="space-y-4">
-              <h3 className="font-semibold">Product Images</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {contribution.contributionData?.frontImageUrl && (
-                  <div className="space-y-2">
-                    <span className="text-sm text-muted-foreground">Front Image:</span>
-                    <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
-                      <Image
-                        src={contribution.contributionData.frontImageUrl}
-                        alt="Front"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  </div>
-                )}
-                {contribution.contributionData?.ingredientsImageUrl && (
-                  <div className="space-y-2">
-                    <span className="text-sm text-muted-foreground">Ingredients Image:</span>
-                    <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
-                      <Image
-                        src={contribution.contributionData.ingredientsImageUrl}
-                        alt="Ingredients"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Review Info */}
-          {contribution.reviewedAt && (
-            <div className="space-y-2 p-4 rounded-lg border bg-muted/50">
-              <h3 className="font-semibold text-sm">Review Information</h3>
-              <div className="text-sm text-muted-foreground">
-                Reviewed on {format(new Date(contribution.reviewedAt), 'PPP')}
-              </div>
-              {contribution.notes && (
-                <div className="mt-2">
-                  <span className="text-sm font-medium">Notes:</span>
-                  <p className="text-sm mt-1">{contribution.notes}</p>
                 </div>
               )}
             </div>
-          )}
 
-          {/* Admin Notes (for pending contributions) */}
-          {contribution.status === 'pending' && (
-            <div className="space-y-2">
-              <Label htmlFor="notes">Admin Notes (optional)</Label>
-              <Textarea
-                id="notes"
-                placeholder="Add notes about this review decision..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
-          )}
-        </div>
+            <Separator />
+
+            {/* Product Information */}
+            {contribution.contributionType === 'new_product' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Product Information</h3>
+                  {contribution.status === 'pending' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditing(!isEditing)}
+                      type="button"
+                    >
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      {isEditing ? 'Cancel Edit' : 'Edit'}
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <Label className="text-muted-foreground">Product Name (AR):</Label>
+                    {isEditing ? (
+                      <Input
+                        value={getFieldValue('productNameAr', contribution.contributionData?.productNameAr || '')}
+                        onChange={(e) => handleEditChange('productNameAr', e.target.value)}
+                        className="mt-1"
+                        placeholder="اسم المنتج بالعربية"
+                      />
+                    ) : (
+                      <p className="font-medium mt-1">{contribution.contributionData?.productNameAr || 'N/A'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Product Name (EN):</Label>
+                    {isEditing ? (
+                      <Input
+                        value={getFieldValue('productNameEn', contribution.contributionData?.productNameEn || '')}
+                        onChange={(e) => handleEditChange('productNameEn', e.target.value)}
+                        className="mt-1"
+                        placeholder="Product Name in English"
+                      />
+                    ) : (
+                      <p className="font-medium mt-1">{contribution.contributionData?.productNameEn || 'N/A'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Brand (AR):</Label>
+                    {isEditing ? (
+                      <Input
+                        value={getFieldValue('brandAr', contribution.contributionData?.brandAr || '')}
+                        onChange={(e) => handleEditChange('brandAr', e.target.value)}
+                        className="mt-1"
+                        placeholder="العلامة التجارية بالعربية"
+                      />
+                    ) : (
+                      <p className="font-medium mt-1">{contribution.contributionData?.brandAr || 'N/A'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Brand (EN):</Label>
+                    {isEditing ? (
+                      <Input
+                        value={getFieldValue('brandEn', contribution.contributionData?.brandEn || '')}
+                        onChange={(e) => handleEditChange('brandEn', e.target.value)}
+                        className="mt-1"
+                        placeholder="Brand in English"
+                      />
+                    ) : (
+                      <p className="font-medium mt-1">{contribution.contributionData?.brandEn || 'N/A'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Barcode:</Label>
+                    {isEditing ? (
+                      <Input
+                        value={getFieldValue('barcode', contribution.contributionData?.barcode || '')}
+                        onChange={(e) => handleEditChange('barcode', e.target.value)}
+                        className="mt-1"
+                        placeholder="Barcode"
+                      />
+                    ) : (
+                      <p className="font-medium mt-1">{contribution.contributionData?.barcode || 'N/A'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Category:</Label>
+                    {isEditing ? (
+                      <Input
+                        value={getFieldValue('category', contribution.contributionData?.category || '')}
+                        onChange={(e) => handleEditChange('category', e.target.value)}
+                        className="mt-1"
+                        placeholder="Category"
+                      />
+                    ) : (
+                      <p className="font-medium mt-1">{contribution.contributionData?.category || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Product Error Report Details */}
+            {contribution.contributionType === 'report_error' && (
+              <div className="space-y-4">
+                <h3 className="font-semibold">{t('errorReportDetails')}</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {contribution.errorType && (
+                    <div className="col-span-2">
+                      <Label className="text-muted-foreground">{t('errorType')}:</Label>
+                      <div className="mt-1">
+                        <Badge variant="outline" className="text-base">
+                          {t(`errorTypes.${contribution.errorType}` as any)}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                  {contribution.errorDescription && (
+                    <div className="col-span-2">
+                      <Label className="text-muted-foreground">{t('description')}:</Label>
+                      <p className="text-sm p-3 rounded-lg border bg-muted/50 mt-1">
+                        {contribution.errorDescription}
+                      </p>
+                    </div>
+                  )}
+                  {contribution.suggestedCorrection && (
+                    <div className="col-span-2">
+                      <Label className="text-muted-foreground">{t('suggestedCorrection')}:</Label>
+                      <p className="text-sm p-3 rounded-lg border bg-muted/50 mt-1">
+                        {contribution.suggestedCorrection}
+                      </p>
+                    </div>
+                  )}
+                  {contribution.evidenceImageUrl && (
+                    <div className="col-span-2">
+                      <Label className="text-muted-foreground">{t('evidencePhoto')}:</Label>
+                      <div className="relative aspect-video rounded-lg border overflow-hidden bg-muted mt-1">
+                        <Image
+                          src={contribution.evidenceImageUrl}
+                          alt={t('evidencePhoto')}
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {contribution.pointsAwarded !== null && contribution.pointsAwarded > 0 && (
+                    <div className="col-span-2">
+                      <Label className="text-muted-foreground">{t('pointsAwarded')}:</Label>
+                      <div className="mt-1">
+                        <Badge variant="default" className="text-base">
+                          {contribution.pointsAwarded} {t('points')}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Existing Product */}
+            {contribution.product && (
+              <div className="space-y-2">
+                <h3 className="font-semibold">Related Product</h3>
+                <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/50">
+                  <Package className="h-4 w-4" />
+                  <div className="flex-1">
+                    <p className="font-medium">{contribution.product.nameAr}</p>
+                    <p className="text-sm text-muted-foreground">{contribution.product.barcode}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild>
+                    <a href={`/products/${contribution.product.id}`} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Ingredients */}
+            {(contribution.contributionData?.extractedIngredientsAr || contribution.contributionData?.extractedIngredientsEn) && (
+              <div className="space-y-4">
+                <h3 className="font-semibold">Extracted Ingredients</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(contribution.contributionData?.extractedIngredientsAr || isEditing) && (
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Arabic:</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={getFieldValue('extractedIngredientsAr', contribution.contributionData?.extractedIngredientsAr || '')}
+                          onChange={(e) => handleEditChange('extractedIngredientsAr', e.target.value)}
+                          className="font-arabic min-h-[100px]"
+                          placeholder="المكونات بالعربية"
+                        />
+                      ) : (
+                        <p className="text-sm p-3 rounded-lg border bg-muted/50 font-arabic">
+                          {contribution.contributionData.extractedIngredientsAr}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {(contribution.contributionData?.extractedIngredientsEn || isEditing) && (
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">English:</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={getFieldValue('extractedIngredientsEn', contribution.contributionData?.extractedIngredientsEn || '')}
+                          onChange={(e) => handleEditChange('extractedIngredientsEn', e.target.value)}
+                          className="min-h-[100px]"
+                          placeholder="Ingredients in English"
+                        />
+                      ) : (
+                        <p className="text-sm p-3 rounded-lg border bg-muted/50">
+                          {contribution.contributionData.extractedIngredientsEn}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Images */}
+            {(contribution.contributionData?.frontImageUrl || contribution.contributionData?.ingredientsImageUrl) && (
+              <div className="space-y-4">
+                <h3 className="font-semibold">Product Images</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {contribution.contributionData?.frontImageUrl && (
+                    <div className="space-y-2">
+                      <span className="text-sm text-muted-foreground">Front Image:</span>
+                      <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
+                        <Image
+                          src={contribution.contributionData.frontImageUrl}
+                          alt="Front"
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {contribution.contributionData?.ingredientsImageUrl && (
+                    <div className="space-y-2">
+                      <span className="text-sm text-muted-foreground">Ingredients Image:</span>
+                      <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
+                        <Image
+                          src={contribution.contributionData.ingredientsImageUrl}
+                          alt="Ingredients"
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Review Info */}
+            {contribution.reviewedAt && (
+              <div className="space-y-2 p-4 rounded-lg border bg-muted/50">
+                <h3 className="font-semibold text-sm">Review Information</h3>
+                <div className="text-sm text-muted-foreground">
+                  Reviewed on {format(new Date(contribution.reviewedAt), 'PPP')}
+                </div>
+                {contribution.notes && (
+                  <div className="mt-2">
+                    <span className="text-sm font-medium">Notes:</span>
+                    <p className="text-sm mt-1">{contribution.notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Admin Notes (for pending contributions) */}
+            {contribution.status === 'pending' && (
+              <div className="space-y-2">
+                <Label htmlFor="notes">Admin Notes (optional)</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Add notes about this review decision..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            )}
+          </div>
         )}
 
         <DialogFooter>

@@ -74,11 +74,11 @@ export default function SearchQueriesPage() {
   }
 
   const calculateSuccessRate = (found: number, total: number) => {
-    if (total === 0) return 0
+    if (total === 0) return '0'
     return ((found / total) * 100).toFixed(1)
   }
 
-  const getSuccessRateBadgeVariant = (rate: string) => {
+  const getSuccessRateBadgeVariant = (rate: string): "default" | "destructive" | "outline" | "secondary" => {
     const numRate = parseFloat(rate)
     if (numRate >= 80) return 'default'
     if (numRate >= 50) return 'secondary'

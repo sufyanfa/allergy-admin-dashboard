@@ -224,7 +224,7 @@ class StatisticsServiceClass {
         return { success: true, message: 'Export downloaded successfully' }
       }
 
-      return response
+      return response as StatisticsApiResponse
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error(`Export request was cancelled`)
@@ -248,18 +248,18 @@ class StatisticsServiceClass {
         overview: {
           totalUsers: response.overview?.totalUsers?.count || 0,
           activeUsers: response.overview?.totalUsers?.count || 0,
-          newUsers: 0,
-          avgSessionTime: 0
+          inactiveUsers: 0,
+          suspendedUsers: 0,
+          newUsersToday: 0,
+          newUsersThisWeek: 0,
+          newUsersThisMonth: 0,
+          growthRate: response.overview?.totalUsers?.growthPercentage || 0
         },
         demographics: {
+          byLanguage: [],
           byRole: response.charts?.userRoleDistribution || [],
-          byCountry: [],
-          byAge: []
-        },
-        growth: {
-          daily: [],
-          weekly: [],
-          monthly: []
+          byStatus: [],
+          byLocation: []
         }
       }
     } catch (error) {
@@ -322,20 +322,29 @@ class StatisticsServiceClass {
         overview: {
           totalProducts: response.overview?.totalProducts?.count || 0,
           verifiedProducts: Math.round((response.overview?.totalProducts?.count || 0) * (response.realtime?.verifiedProductsPercentage || 0) / 100),
-          categoriesCount: response.charts?.productCategories?.length || 0,
-          avgConfidenceScore: 0.85 // Mock value since not in API
-        },
-        categories: response.charts?.productCategories || [],
-        dataSources: response.charts?.productDataSources || [],
-        quality: {
-          verificationRate: (response.realtime?.verifiedProductsPercentage || 0) / 100,
+          unverifiedProducts: 0,
+          newProductsToday: 0,
+          newProductsThisWeek: 0,
+          newProductsThisMonth: 0,
           avgConfidenceScore: 0.85,
-          flaggedForReview: 0
+          categoriesCount: response.charts?.productCategories?.length || 0
         },
-        growth: {
-          daily: [],
-          weekly: [],
-          monthly: []
+        categories: (response.charts?.productCategories || []).map(cat => ({
+          ...cat,
+          verified: 0,
+          avgConfidence: 0.85
+        })),
+        dataSources: (response.charts?.productDataSources || []).map(source => ({
+          ...source,
+          source: source.source as "api" | "manual" | "community",
+          avgConfidence: 0.85
+        })),
+        quality: {
+          highConfidence: 0,
+          mediumConfidence: 0,
+          lowConfidence: 0,
+          avgConfidenceScore: 0.85,
+          verificationRate: (response.realtime?.verifiedProductsPercentage || 0) / 100
         }
       }
     } catch (error) {
@@ -411,27 +420,32 @@ class StatisticsServiceClass {
 
       return {
         overview: {
+          totalSearches: response.overview?.totalSearches?.count || 0,
           searchesToday: response.realtime?.searchesToday || 0,
+          searchesThisWeek: 0,
+          searchesThisMonth: 0,
           avgSearchTime: response.realtime?.avgSearchTimeMs || 0,
+          totalContributions: 0,
           contributionsToday: response.realtime?.contributionsToday || 0,
-          totalContributions: 0
+          contributionsThisWeek: 0,
+          contributionsThisMonth: 0,
+          avgContributionsPerUser: 0
         },
         searches: {
-          total: response.overview?.totalSearches?.count || 0,
-          today: response.realtime?.searchesToday || 0,
+          byType: [],
+          byResult: [],
           avgResponseTime: response.realtime?.avgSearchTimeMs || 0,
-          peakHour: '12:00'
+          popularQueries: []
         },
         contributions: {
-          total: 0,
-          today: response.realtime?.contributionsToday || 0,
-          pending: 0,
-          approved: 0
+          byType: [],
+          byStatus: [],
+          topContributors: []
         },
         experiences: {
-          total: 0,
-          positive: 0,
-          negative: 0,
+          totalReports: 0,
+          byReaction: [],
+          bySeverity: [],
           avgRating: 0
         }
       }

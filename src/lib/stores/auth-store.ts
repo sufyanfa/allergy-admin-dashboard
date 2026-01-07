@@ -64,7 +64,8 @@ export const useAuthStore = create<AuthStore>()(
             console.log('Login Response Data:', responseData.data)
 
             // Extract user and tokens from response
-            const { user, tokens } = responseData.data
+            let { user } = responseData.data
+            const { tokens } = responseData.data
 
             // Extract tokens from the tokens object
             const finalAccessToken = tokens?.access_token || tokens?.accessToken

@@ -61,7 +61,7 @@ export function AnalyticsOverview({ className }: AnalyticsOverviewProps) {
   }
 
   const calculateSuccessRate = (found: number, total: number) => {
-    if (total === 0) return 0
+    if (total === 0) return '0'
     return ((found / total) * 100).toFixed(1)
   }
 

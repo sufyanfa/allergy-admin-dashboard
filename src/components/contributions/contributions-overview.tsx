@@ -80,12 +80,12 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
     }
   }
 
-  const handleApprove = async (contribution: Contribution, notes?: string, editedData?: Record<string, string | number>) => {
+  const handleApprove = async (contribution: Contribution, notes?: string, editedData?: Record<string, string | number | undefined>) => {
     try {
       // Step 1: If there's edited data, save it first using the edit endpoint
       if (editedData && Object.keys(editedData).length > 0) {
         console.log('🔧 Saving edited data first:', editedData)
-        await editContribution(contribution.id, editedData)
+        await editContribution(contribution.id, editedData as any)
         toast.success('Changes saved')
       }
 
@@ -101,7 +101,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
       } else {
         toast.success('Contribution approved successfully')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Approve failed - Full error:', error)
       console.error('❌ Error response:', error?.response)
       console.error('❌ Error data:', error?.response?.data)
@@ -256,7 +256,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
         <StatsCard
           title={t("totalContributions")}
           value={overview?.totalContributions || 0}
-          icon="git-pull-request"
+          icon="users"
           description={t("allSubmissions")}
           loading={isLoading}
         />
@@ -264,7 +264,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
         <StatsCard
           title={t("pendingReview")}
           value={overview?.pendingContributions || 0}
-          icon="clock"
+          icon="package"
           description={t("awaitingReview")}
           loading={isLoading}
         />
@@ -272,7 +272,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
         <StatsCard
           title={t("approved")}
           value={overview?.approvedContributions || 0}
-          icon="check-circle"
+          icon="package"
           description={t("acceptedContributions")}
           loading={isLoading}
         />
@@ -280,7 +280,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
         <StatsCard
           title={t("rejected")}
           value={overview?.rejectedContributions || 0}
-          icon="x-circle"
+          icon="package"
           description={t("declinedContributions")}
           loading={isLoading}
         />
@@ -482,7 +482,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
         isLoading={isLoadingDetail}
         onSaveChanges={async (id, editedData) => {
           try {
-            await editContribution(id, editedData)
+            await editContribution(id, editedData as any)
             toast.success('Changes saved successfully')
             // Refresh the selected contribution to show updated data
             const updated = await fetchContribution(id)
