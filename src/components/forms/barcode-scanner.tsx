@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScanLine, Camera, Keyboard, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useProductsStore } from '@/lib/stores/products-store'
 import { toast } from 'sonner'
+import { useBarcodeScanner } from '@/lib/hooks/use-barcode-scanner'
 
 interface BarcodeScannerProps {
   open: boolean
@@ -35,8 +36,62 @@ export function BarcodeScanner({ open, onClose, onScan }: BarcodeScannerProps) {
     }
     message: string
   } | null>(null)
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null)
 
   const { fetchProductByBarcode } = useProductsStore()
+
+  // Barcode detection handler
+  const handleBarcodeDetected = useCallback(async (barcode: string) => {
+    // Stop scanning to prevent multiple detections
+    stopScanning()
+
+    // Show loading state
+    setIsSearching(true)
+    setSearchResult(null)
+
+    try {
+      const product = await fetchProductByBarcode(barcode)
+
+      setSearchResult({
+        found: true,
+        product,
+        message: `Product found: ${product.nameAr}`
+      })
+
+      toast.success(`Barcode detected: ${barcode}`)
+
+      // Auto-trigger scan callback after a brief delay
+      setTimeout(() => {
+        onScan(barcode)
+        onClose()
+      }, 1500)
+    } catch {
+      setSearchResult({
+        found: false,
+        message: 'Product not found in database'
+      })
+
+      toast.error('Product not found')
+
+      // Restart scanning to try again
+      if (videoRef) {
+        setTimeout(() => startScanning(videoRef), 2000)
+      }
+    } finally {
+      setIsSearching(false)
+    }
+  }, [fetchProductByBarcode, onScan, onClose, videoRef])
+
+  // Initialize barcode scanner hook
+  const {
+    isScanning,
+    error: scanError,
+    devices,
+    selectedDeviceId,
+    startScanning,
+    stopScanning,
+    switchCamera,
+  } = useBarcodeScanner(handleBarcodeDetected)
 
   const handleManualSubmit = async () => {
     if (!manualBarcode.trim()) {
@@ -77,9 +132,31 @@ export function BarcodeScanner({ open, onClose, onScan }: BarcodeScannerProps) {
   }
 
   const handleCameraMode = () => {
-    // For now, show a message about camera functionality
-    toast.info('Camera scanning will be available in a future update. Please use manual entry for now.')
+    setScanMode('camera')
   }
+
+  // Camera lifecycle: Start scanning when switching to camera mode
+  useEffect(() => {
+    if (scanMode === 'camera' && videoRef && !isScanning) {
+      startScanning(videoRef)
+    }
+
+    return () => {
+      if (scanMode !== 'camera') {
+        stopScanning()
+      }
+    }
+  }, [scanMode, videoRef, isScanning, startScanning, stopScanning])
+
+  // Cleanup on dialog close
+  useEffect(() => {
+    if (!open) {
+      stopScanning()
+      setSearchResult(null)
+      setManualBarcode('')
+      setScanMode('manual')
+    }
+  }, [open, stopScanning])
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -109,13 +186,9 @@ export function BarcodeScanner({ open, onClose, onScan }: BarcodeScannerProps) {
               variant={scanMode === 'camera' ? 'default' : 'outline'}
               onClick={handleCameraMode}
               className="flex-1"
-              disabled
             >
               <Camera className="h-4 w-4 mr-2" />
               Camera Scan
-              <Badge variant="secondary" className="ml-2 text-xs">
-                Soon
-              </Badge>
             </Button>
           </div>
 
@@ -198,19 +271,118 @@ export function BarcodeScanner({ open, onClose, onScan }: BarcodeScannerProps) {
             </Card>
           )}
 
-          {/* Camera Mode (Future Implementation) */}
+          {/* Camera Mode */}
           {scanMode === 'camera' && (
             <Card>
               <CardContent className="pt-6">
-                <div className="text-center py-8">
-                  <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-medium mb-2">Camera Scanning</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Camera-based barcode scanning will be available in a future update.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    For now, please use manual entry or switch to manual mode.
-                  </p>
+                <div className="space-y-4">
+                  {/* Video Preview */}
+                  <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+                    <video
+                      ref={setVideoRef}
+                      className="w-full h-full object-cover"
+                      autoPlay
+                      playsInline
+                      muted
+                      aria-label="Camera preview for barcode scanning"
+                    />
+
+                    {/* Scanning Overlay */}
+                    {isScanning && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="border-2 border-green-500 rounded-lg w-3/4 h-1/2 animate-pulse" />
+                      </div>
+                    )}
+
+                    {/* Status Badge */}
+                    <div className="absolute top-4 left-4">
+                      {isScanning ? (
+                        <Badge className="bg-green-500">
+                          <ScanLine className="h-3 w-3 mr-1 animate-pulse" />
+                          Scanning...
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          <Camera className="h-3 w-3 mr-1" />
+                          Camera Ready
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Error Display */}
+                  {scanError && (
+                    <div className="p-3 rounded-lg border bg-red-50 border-red-200">
+                      <div className="flex items-center">
+                        <AlertCircle className="h-4 w-4 text-red-600 mr-2" />
+                        <span className="text-sm text-red-700">{scanError}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Camera Selection (if multiple cameras) */}
+                  {devices.length > 1 && (
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium">Camera:</label>
+                      <select
+                        className="flex-1 text-sm border rounded px-2 py-1"
+                        value={selectedDeviceId || ''}
+                        onChange={(e) => switchCamera(e.target.value)}
+                        disabled={isScanning}
+                      >
+                        {devices.map((device, index) => (
+                          <option key={device.deviceId} value={device.deviceId}>
+                            {device.label || `Camera ${index + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Search Result */}
+                  {searchResult && (
+                    <div className={`p-3 rounded-lg border ${
+                      searchResult.found
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-orange-50 border-orange-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {searchResult.found ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-orange-600 mr-2" />
+                        )}
+                        <span className={`text-sm ${
+                          searchResult.found ? 'text-green-700' : 'text-orange-700'
+                        }`}>
+                          {searchResult.message}
+                        </span>
+                      </div>
+                      {searchResult.product && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Brand: {searchResult.product.brandAr} |
+                          Category: {searchResult.product.category}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        stopScanning()
+                        setScanMode('manual')
+                      }}
+                      className="flex-1"
+                    >
+                      Switch to Manual
+                    </Button>
+                    <Button variant="outline" onClick={onClose}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
