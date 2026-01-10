@@ -75,9 +75,21 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
     }
   }
 
-  const handleEdit = (product: Product) => {
-    setSelectedProduct(product)
-    setShowEditForm(true)
+  const handleEdit = async (product: Product) => {
+    try {
+      // Fetch full product details including ingredients before opening edit form
+      const fullProduct = await fetchProduct(product.id)
+
+      if (fullProduct && fullProduct.id) {
+        setSelectedProduct(fullProduct)
+        setShowEditForm(true)
+      } else {
+        toast.error('Failed to load product details')
+      }
+    } catch (error) {
+      console.error('Error fetching product for edit:', error)
+      toast.error('Failed to load product details')
+    }
   }
 
   const handleView = async (product: Product) => {

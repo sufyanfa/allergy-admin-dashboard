@@ -92,7 +92,8 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
   })
 
   useEffect(() => {
-    if (product) {
+    if (open && product) {
+      // Edit mode: populate form with existing product data
       form.reset({
         barcode: product.barcode || '',
         nameAr: product.nameAr || '',
@@ -106,16 +107,19 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
         dataSource: product.dataSource || 'manual',
       })
 
-      if (product.ingredients) {
+      if (product.ingredients && product.ingredients.length > 0) {
         setIngredients(
           product.ingredients.map((ing, index) => ({
             nameAr: ing.nameAr || '',
             nameEn: ing.nameEn || '',
-            orderIndex: ing.orderIndex || index
+            orderIndex: ing.orderIndex !== undefined ? ing.orderIndex : index
           }))
         )
+      } else {
+        setIngredients([])
       }
-    } else {
+    } else if (open && !product) {
+      // Create mode: reset to empty form
       form.reset({
         barcode: '',
         nameAr: '',
@@ -130,7 +134,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
       })
       setIngredients([])
     }
-  }, [product, form])
+  }, [open, product])
 
   const handleAddIngredient = () => {
     if (newIngredient.nameAr.trim()) {
@@ -231,7 +235,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('category')} *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder={t('selectCategory')} />
@@ -373,7 +377,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('dataSource')}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue />

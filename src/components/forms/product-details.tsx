@@ -34,11 +34,12 @@ interface ProductDetailsProps {
   isLoading?: boolean
 }
 
-import { useTranslations } from '@/lib/hooks/use-translations'
+import { useTranslations, useLocale } from '@/lib/hooks/use-translations'
 
 export function ProductDetails({ product, open, onClose, isLoading = false }: ProductDetailsProps) {
   const t = useTranslations('products')
   const tCommon = useTranslations('common')
+  const locale = useLocale()
   const [allergyCheck, setAllergyCheck] = useState<AllergyCheck | null>(null)
   const [isCheckingAllergies, setIsCheckingAllergies] = useState(false)
 
@@ -320,37 +321,42 @@ export function ProductDetails({ product, open, onClose, isLoading = false }: Pr
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {product.ingredients.map((ingredient, index) => (
-                      <div
-                        key={ingredient.id}
-                        className={`p-3 rounded-lg border ${ingredient.isAllergen
-                            ? 'bg-red-50 border-red-200'
-                            : 'bg-muted/50'
-                          }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">
-                            {index + 1}. {ingredient.nameAr}
-                          </span>
-                          {ingredient.isAllergen && (
-                            <Badge variant="destructive" className="text-xs">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              {t('allergen')}
-                            </Badge>
+                    {product.ingredients.map((ingredient, index) => {
+                      const displayName = locale === 'ar' ? ingredient.nameAr : (ingredient.nameEn || ingredient.nameAr)
+                      const secondaryName = locale === 'ar' ? ingredient.nameEn : ingredient.nameAr
+
+                      return (
+                        <div
+                          key={ingredient.id}
+                          className={`p-3 rounded-lg border ${ingredient.isAllergen
+                              ? 'bg-red-50 border-red-200'
+                              : 'bg-muted/50'
+                            }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">
+                              {index + 1}. {displayName}
+                            </span>
+                            {ingredient.isAllergen && (
+                              <Badge variant="destructive" className="text-xs">
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                {t('allergen')}
+                              </Badge>
+                            )}
+                          </div>
+                          {secondaryName && displayName !== secondaryName && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {secondaryName}
+                            </p>
+                          )}
+                          {ingredient.allergenType && (
+                            <p className="text-xs text-red-600 mt-1">
+                              {t('type')}: {ingredient.allergenType}
+                            </p>
                           )}
                         </div>
-                        {ingredient.nameEn && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {ingredient.nameEn}
-                          </p>
-                        )}
-                        {ingredient.allergenType && (
-                          <p className="text-xs text-red-600 mt-1">
-                            {t('type')}: {ingredient.allergenType}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>
