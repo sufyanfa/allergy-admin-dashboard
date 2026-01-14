@@ -23,7 +23,7 @@ class ListsApi {
     // ==================== List CRUD ====================
 
     /**
-     * Get all lists (with optional filters)
+     * Get all lists (Admin Dashboard - fetches all lists from all users)
      */
     async getLists(filters?: ListsFilters): Promise<{ success: boolean; data: { lists: ProductList[] } }> {
         const params = new URLSearchParams()
@@ -35,7 +35,8 @@ class ListsApi {
         if (filters?.limit) params.append('limit', filters.limit.toString())
         if (filters?.offset) params.append('offset', filters.offset.toString())
 
-        return apiClient.get(`${this.basePath}?${params.toString()}`)
+        // Use admin endpoint to get all lists from all users
+        return apiClient.get(`/admin/lists?${params.toString()}`)
     }
 
     /**
