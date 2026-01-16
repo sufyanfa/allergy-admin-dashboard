@@ -30,8 +30,6 @@ export function AuthGuard({ children }: AuthGuardProps) {
     )
   }
 
-  console.log('AuthGuard status:', { isAuthenticated, isLoading, isAdmin })
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

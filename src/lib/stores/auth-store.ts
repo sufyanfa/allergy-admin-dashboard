@@ -3,6 +3,12 @@ import { persist } from 'zustand/middleware'
 import { User, AppPermission } from '@/types'
 import apiClient from '@/lib/api/client'
 
+// Development-only logger - silent in production
+const isDev = process.env.NODE_ENV === 'development'
+const devLog = isDev ? (...args: unknown[]) => console.log('[Auth]', ...args) : () => {}
+const devWarn = isDev ? (...args: unknown[]) => console.warn('[Auth]', ...args) : () => {}
+const devError = isDev ? (...args: unknown[]) => console.error('[Auth]', ...args) : () => {}
+
 interface AuthState {
   user: User | null
   permissions: AppPermission[]
@@ -60,9 +66,6 @@ export const useAuthStore = create<AuthStore>()(
           const responseData = await response.json()
 
           if (responseData.success) {
-            // Debug: Log the actual response structure
-            console.log('Login Response Data:', responseData.data)
-
             // Extract user and tokens from response
             let { user } = responseData.data
             const { tokens } = responseData.data
@@ -72,16 +75,8 @@ export const useAuthStore = create<AuthStore>()(
             const finalRefreshToken = tokens?.refresh_token || tokens?.refreshToken
             const finalExpiresIn = tokens?.expires_in || tokens?.expiresIn
 
-            // Debug: Log extracted tokens
-            console.log('Extracted tokens:', {
-              finalAccessToken: finalAccessToken ? 'exists' : 'missing',
-              finalRefreshToken: finalRefreshToken ? 'exists' : 'missing',
-              finalExpiresIn
-            })
-
             // Validate tokens exist
             if (!finalAccessToken) {
-              console.error('No access token found in response. Available fields:', Object.keys(responseData.data))
               throw new Error('No access token received from server')
             }
 
@@ -110,7 +105,7 @@ export const useAuthStore = create<AuthStore>()(
                   permissions: extractedPermissions
                 }
               } catch (jwtError) {
-                console.warn('Could not parse JWT token:', jwtError)
+                devWarn('Could not parse JWT token')
               }
             }
 
@@ -167,7 +162,7 @@ export const useAuthStore = create<AuthStore>()(
         try {
           await apiClient.post('/auth/logout')
         } catch (error) {
-          console.error('Logout error:', error)
+          devError('Logout failed')
         } finally {
           // Clear local state regardless of API response
           apiClient.clearToken()
@@ -214,7 +209,7 @@ export const useAuthStore = create<AuthStore>()(
                   user = { ...user, role: jwtPayload.user_role }
                 }
               } catch (jwtError) {
-                console.warn('Could not parse JWT token:', jwtError)
+                devWarn('Could not parse JWT token')
               }
             }
 
@@ -361,7 +356,7 @@ export const useAuthStore = create<AuthStore>()(
             })
           }
         } catch (error) {
-          console.error('Auth initialization failed:', error)
+          devError('Auth initialization failed')
           set({
             user: null,
             permissions: [],

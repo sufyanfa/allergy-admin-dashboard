@@ -84,13 +84,11 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
     try {
       // Step 1: If there's edited data, save it first using the edit endpoint
       if (editedData && Object.keys(editedData).length > 0) {
-        console.log('🔧 Saving edited data first:', editedData)
         await editContribution(contribution.id, editedData as any)
         toast.success('Changes saved')
       }
 
       // Step 2: Now approve the contribution
-      console.log('✅ Approving contribution')
       await updateContributionStatus(contribution.id, {
         status: 'approved',
         notes
@@ -102,10 +100,6 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
         toast.success('Contribution approved successfully')
       }
     } catch (error: any) {
-      console.error('❌ Approve failed - Full error:', error)
-      console.error('❌ Error response:', error?.response)
-      console.error('❌ Error data:', error?.response?.data)
-      console.error('❌ Error message:', error?.message)
       toast.error(`Failed to approve: ${error?.response?.data?.message || error?.message || 'Unknown error'}`)
       throw error
     }

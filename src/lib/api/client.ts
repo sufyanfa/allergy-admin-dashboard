@@ -1,5 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
+// Development-only logger - completely silent in production
+const isDev = process.env.NODE_ENV === 'development'
+const devLog = isDev ? (...args: unknown[]) => console.log('[API]', ...args) : () => {}
+const devError = isDev ? (...args: unknown[]) => console.error('[API]', ...args) : () => {}
+
 class ApiClient {
   private client: AxiosInstance
   private token: string | null = null
@@ -7,12 +12,6 @@ class ApiClient {
 
   constructor() {
     const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api/${process.env.NEXT_PUBLIC_API_VERSION}`
-    console.log('API Client Base URL:', baseURL)
-    console.log('Environment:', {
-      NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-      NEXT_PUBLIC_API_VERSION: process.env.NEXT_PUBLIC_API_VERSION,
-      NEXT_PUBLIC_API_KEY: process.env.NEXT_PUBLIC_API_KEY ? 'exists' : 'missing'
-    })
 
     this.client = axios.create({
       baseURL,
@@ -32,20 +31,11 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
-        // Debug: Log request details
-        console.log('API Request:', {
-          url: config.url,
-          baseURL: config.baseURL,
-          hasToken: !!this.token,
-          tokenValid: this.token ? this.isTokenValid() : false
-        })
-
         // Check if token is still valid
         if (this.token && this.isTokenValid()) {
           config.headers.Authorization = `Bearer ${this.token}`
         } else if (this.token && !this.isTokenValid()) {
           // Token is expired, clear it
-          console.log('Token expired, clearing...')
           this.clearToken()
         } else if (!this.token) {
           // Try to get stored token
@@ -53,9 +43,6 @@ class ApiClient {
           if (storedToken) {
             this.token = storedToken
             config.headers.Authorization = `Bearer ${storedToken}`
-            console.log('Using stored token')
-          } else {
-            console.log('No token available for request')
           }
         }
         return config
@@ -71,19 +58,8 @@ class ApiClient {
         return response
       },
       async (error) => {
-        console.error('API Error Details:', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          url: error.config?.url,
-          baseURL: error.config?.baseURL,
-          fullURL: `${error.config?.baseURL}${error.config?.url}`,
-          message: error.message,
-          code: error.code,
-          name: error.name,
-          isNetworkError: !error.response,
-          headers: error.config?.headers
-        })
+        // Log errors only in development
+        devError('Request failed:', error.response?.status, error.config?.url)
 
         const original = error.config
 
@@ -188,13 +164,8 @@ class ApiClient {
     const message = error.response?.data?.message || error.message
     const details = error.response?.data
 
-    console.error(`API ${method} Error:`, {
-      url,
-      status,
-      message,
-      details,
-      fullError: error.response?.data
-    })
+    // Log only in development
+    devError(`${method} ${url} failed:`, status, message)
 
     // Create a more informative error
     const apiError = new Error(`API ${method} ${url} failed: ${message}`)

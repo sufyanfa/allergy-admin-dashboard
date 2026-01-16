@@ -26,11 +26,6 @@ export function IntlProvider({
     locale: string;
     messages: Messages;
 }) {
-    // Debug: log received locale and check if messages exist
-    console.log('IntlProvider - Locale:', locale);
-    console.log('IntlProvider - Messages keys:', Object.keys(messages || {}));
-    console.log('IntlProvider - Auth messages:', messages?.auth ? 'exists' : 'missing');
-
     return (
         <IntlContext.Provider
             value={{

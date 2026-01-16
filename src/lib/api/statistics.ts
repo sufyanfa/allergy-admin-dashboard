@@ -188,15 +188,7 @@ class StatisticsServiceClass {
 
   // Test CORS connection
   async testConnection(signal?: AbortSignal): Promise<SystemHealthApiResponse> {
-    try {
-      console.log('Testing CORS connection...')
-      const response = await apiClient.get<SystemHealthApiResponse>('/admin/system/health', { signal })
-      console.log('CORS test successful:', response)
-      return response
-    } catch (error) {
-      console.error('CORS test failed:', error)
-      throw error
-    }
+    return apiClient.get<SystemHealthApiResponse>('/admin/system/health', { signal })
   }
 
   // Export Dashboard Data

@@ -29,11 +29,6 @@ export function useTranslations(namespace?: string) {
             });
         }
 
-        // Debug first few calls
-        if (Math.random() < 0.1) {
-            console.log(`Translation [${locale}] ${path}:`, value || `MISSING (returning key: ${key})`);
-        }
-
         return value || key;
     };
 }

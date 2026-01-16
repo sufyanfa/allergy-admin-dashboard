@@ -14,6 +14,10 @@ import {
 import { API_ENDPOINTS } from '@/constants'
 import apiClient from '@/lib/api/client'
 
+// Development-only logger - silent in production
+const isDev = process.env.NODE_ENV === 'development'
+const devError = isDev ? (...args: unknown[]) => console.error('[Products]', ...args) : () => {}
+
 interface ProductsState {
   products: Product[]
   categories: ProductCategory[]
@@ -125,7 +129,7 @@ export const useProductsStore = create<ProductsStore>()(
             throw new Error(response.message || 'Failed to fetch products')
           }
         } catch (error: unknown) {
-          console.error('❌ Load More Error:', error)
+          devError('Load more failed')
           const message = (error as Error)?.message || 'Failed to fetch products'
           set({
             error: message,
@@ -170,7 +174,7 @@ export const useProductsStore = create<ProductsStore>()(
             throw new Error(response.message || 'Failed to fetch products overview')
           }
         } catch (error: unknown) {
-          console.error('❌ Products Overview Error:', error)
+          devError('Products overview failed')
           const message = (error as Error)?.message || 'Failed to fetch products overview'
           set({
             error: message,
@@ -184,29 +188,23 @@ export const useProductsStore = create<ProductsStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          console.log('🔍 Fetching product with ID:', id)
           const response = await apiClient.get<ApiResponse<{ product: Product }>>(
             API_ENDPOINTS.PRODUCTS.GET(id)
           )
 
-          console.log('📦 API Response:', response)
-
           if (response.success && response.data) {
             // Backend returns { data: { product: {...} } }, so unwrap it
             const product = response.data.product || response.data as any
-            console.log('✅ Product data:', product)
-            console.log('📋 Has ingredients?', product.ingredients?.length || 0, 'ingredients')
             set({
               currentProduct: product,
               isLoading: false
             })
             return product
           } else {
-            console.error('❌ API returned success=false or no data:', response)
             throw new Error(response.message || 'Failed to fetch product')
           }
         } catch (error: unknown) {
-          console.error('❌ Error fetching product:', error)
+          devError('Fetch product failed')
           const message = (error as Error)?.message || 'Failed to fetch product'
           set({
             error: message,
@@ -372,7 +370,7 @@ export const useProductsStore = create<ProductsStore>()(
             throw new Error(response.message || 'Failed to search products')
           }
         } catch (error: unknown) {
-          console.error('❌ Search Error:', error)
+          devError('Search failed')
           const message = (error as Error)?.message || 'Failed to search products'
           set({
             error: message,
