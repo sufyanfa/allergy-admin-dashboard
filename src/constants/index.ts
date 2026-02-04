@@ -80,6 +80,11 @@ export const API_ENDPOINTS = {
     SUMMARY: '/admin/analytics/summary',
     PRODUCT: (productId: string) => `/admin/analytics/products/${productId}`,
   },
+  REPORTS: {
+    LIST: '/admin/reports',
+    RESOLVE: (id: string) => `/admin/reports/${id}/resolve`,
+    DISMISS: (id: string) => `/admin/reports/${id}/dismiss`,
+  },
 } as const
 
 // Navigation Menu Items
@@ -131,6 +136,12 @@ export const NAVIGATION_ITEMS = [
     translationKey: 'analytics',
     href: '/analytics',
     icon: 'TrendingUp',
+  },
+  {
+    title: 'Reports',
+    translationKey: 'reports',
+    href: '/reports',
+    icon: 'Flag',
   },
 ] as const
 

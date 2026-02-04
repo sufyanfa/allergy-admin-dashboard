@@ -27,6 +27,11 @@ class GroupsApi {
         const response = await apiClient.delete<{ success: boolean; message: string }>(`/community/posts/${postId}`)
         return response.success
     }
+
+    async deleteComment(commentId: string) {
+        const response = await apiClient.delete<{ success: boolean; message: string }>(`/community/comments/${commentId}`)
+        return response.success
+    }
 }
 
 export const groupsApi = new GroupsApi()

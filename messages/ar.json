@@ -53,7 +53,8 @@
         "allergies": "الحساسية",
         "analytics": "التحليلات",
         "contributions": "المساهمات",
-        "settings": "الإعدادات"
+        "settings": "الإعدادات",
+        "reports": "البلاغات"
     },
     "dashboard": {
         "title": "لوحة التحكم",

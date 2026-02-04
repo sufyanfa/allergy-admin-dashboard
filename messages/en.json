@@ -57,7 +57,8 @@
         "clearSelection": "Clear Selection",
         "status": "Status",
         "type": "Type",
-        "settings": "Settings"
+        "settings": "Settings",
+        "reports": "Reports"
     },
     "dashboard": {
         "title": "Dashboard",
