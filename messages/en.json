@@ -632,5 +632,27 @@
         "noGroups": "No groups found",
         "loading": "Loading groups...",
         "error": "Failed to load groups"
+    },
+    "reports": {
+        "title": "Community Moderation",
+        "description": "Manage reported posts and comments from sensitivity groups.",
+        "communityReports": "Community Reports",
+        "type": "Type",
+        "reason": "Reason",
+        "reporter": "Reporter",
+        "contentSnippet": "Content Snippet",
+        "date": "Date",
+        "actions": "Actions",
+        "noReports": "No active reports",
+        "dismissReport": "Dismiss Report",
+        "deleteContent": "Delete Content",
+        "post": "Post",
+        "comment": "Comment",
+        "confirmDelete": "Are you sure you want to delete this content? This will also remove the report.",
+        "reportDismissed": "Report dismissed",
+        "contentDeleted": "Content deleted",
+        "failedToLoad": "Failed to load reports",
+        "failedToDismiss": "Failed to dismiss report",
+        "failedToDelete": "Failed to delete content"
     }
 }

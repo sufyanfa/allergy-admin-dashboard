@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/hooks/use-translations'
 
 export default function ReportsPage() {
     const tCommon = useTranslations('common')
+    const tReports = useTranslations('reports')
     const { isAdmin } = useRequireAuth()
 
     if (!isAdmin) {
@@ -29,9 +30,9 @@ export default function ReportsPage() {
         <AdminLayout>
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Community Moderation</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{tReports('title')}</h1>
                     <p className="text-muted-foreground">
-                        Manage reported posts and comments from sensitivity groups.
+                        {tReports('description')}
                     </p>
                 </div>
                 <ReportsList />

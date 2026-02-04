@@ -22,8 +22,8 @@ import { format } from 'date-fns'
 export function ReportsList() {
     const [reports, setReports] = useState<GroupReport[]>([])
     const [isLoading, setIsLoading] = useState(true)
-    const t = useTranslations('groups')
     const tCommon = useTranslations('common')
+    const tReports = useTranslations('reports')
 
     const fetchReports = async () => {
         try {
@@ -34,7 +34,7 @@ export function ReportsList() {
             }
         } catch (error) {
             console.error('Failed to fetch reports:', error)
-            toast.error('Failed to load reports')
+            toast.error(tReports('failedToLoad'))
         } finally {
             setIsLoading(false)
         }
@@ -47,15 +47,15 @@ export function ReportsList() {
     const handleDismiss = async (reportId: string) => {
         try {
             await reportsApi.dismissReport(reportId)
-            toast.success('Report dismissed')
+            toast.success(tReports('reportDismissed'))
             setReports(reports.filter(r => r.id !== reportId))
         } catch (error) {
-            toast.error('Failed to dismiss report')
+            toast.error(tReports('failedToDismiss'))
         }
     }
 
     const handleDeleteContent = async (reportId: string, postId: string | null, commentId: string | null) => {
-        if (!window.confirm('Are you sure you want to delete this content? This will also remove the report.')) {
+        if (!window.confirm(tReports('confirmDelete'))) {
             return
         }
 
@@ -63,16 +63,12 @@ export function ReportsList() {
             if (postId) {
                 await groupsApi.deletePost(postId)
             } else if (commentId) {
-                // Assuming deleteComment exists or use the same logic
-                // If comment deletion is not in groupsApi, we might need to add it
-                // For now let's assume posts for simplicity as per user request focus
-                toast.error('Deleting comments via API not yet implemented in GroupsApi')
-                return
+                await groupsApi.deleteComment(commentId)
             }
-            toast.success('Content deleted')
+            toast.success(tReports('contentDeleted'))
             setReports(reports.filter(r => r.id !== reportId))
         } catch (error) {
-            toast.error('Failed to delete content')
+            toast.error(tReports('failedToDelete'))
         }
     }
 
@@ -85,26 +81,26 @@ export function ReportsList() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-warning" />
-                    Community Reports
+                    {tReports('communityReports')}
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Reason</TableHead>
-                            <TableHead>Reporter</TableHead>
-                            <TableHead>Content Snippet</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>{tReports('type')}</TableHead>
+                            <TableHead>{tReports('reason')}</TableHead>
+                            <TableHead>{tReports('reporter')}</TableHead>
+                            <TableHead>{tReports('contentSnippet')}</TableHead>
+                            <TableHead>{tReports('date')}</TableHead>
+                            <TableHead className="text-right">{tReports('actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {reports.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                    No active reports
+                                    {tReports('noReports')}
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -112,7 +108,7 @@ export function ReportsList() {
                                 <TableRow key={report.id}>
                                     <TableCell>
                                         <Badge variant={report.postId ? 'default' : 'secondary'}>
-                                            {report.postId ? 'Post' : 'Comment'}
+                                            {report.postId ? tReports('post') : tReports('comment')}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
@@ -131,7 +127,7 @@ export function ReportsList() {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleDismiss(report.id)}
-                                                title="Dismiss Report"
+                                                title={tReports('dismissReport')}
                                             >
                                                 <CheckCircle className="h-4 w-4 text-success" />
                                             </Button>
@@ -139,7 +135,7 @@ export function ReportsList() {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleDeleteContent(report.id, report.postId, report.commentId)}
-                                                title="Delete Content"
+                                                title={tReports('deleteContent')}
                                             >
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
