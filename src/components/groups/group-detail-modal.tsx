@@ -12,7 +12,8 @@ import { groupsApi } from '@/lib/api/groups'
 import { useTranslations } from '@/lib/hooks/use-translations'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Users, ThumbsUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { MessageSquare, Users, ThumbsUp, Trash2 } from 'lucide-react'
 
 interface GroupDetailModalProps {
     group: Group | null
@@ -36,16 +37,24 @@ export function GroupDetailModal({ group, isOpen, onClose }: GroupDetailModalPro
         setIsLoading(true)
         try {
             const data = await groupsApi.getGroupPosts(group.id)
-            // Expecting data.posts. posts logic depends on what getGroupPosts returns.
-            // In API updated: returns response.data.
-            // If backend returns { posts: [] }, then data.posts.
-            // Let's assume standard pagination response or list.
-            // Checking backend handlers: getGroupPosts returns { posts, pagination }.
             setPosts(data.posts || [])
         } catch (error) {
             console.error('Failed to load posts', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const handleDeletePost = async (postId: string) => {
+        if (!confirm(t('confirmDeletePost'))) return
+
+        try {
+            const success = await groupsApi.deletePost(postId)
+            if (success) {
+                setPosts(posts.filter(p => p.id !== postId))
+            }
+        } catch (error) {
+            console.error('Failed to delete post', error)
         }
     }
 
@@ -88,18 +97,31 @@ export function GroupDetailModal({ group, isOpen, onClose }: GroupDetailModalPro
                         ) : posts.length > 0 ? (
                             <div className="space-y-4">
                                 {posts.map((post) => (
-                                    <div key={post.id} className="border rounded-lg p-3 hover:bg-muted/20">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Avatar className="h-6 w-6">
-                                                <AvatarImage src={post.authorAvatar || ''} />
-                                                <AvatarFallback>{(post.authorName || 'U')[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex flex-col">
-                                                <span className="font-medium text-xs">{post.authorName}</span>
-                                                <span className="text-[10px] text-muted-foreground">
-                                                    {new Date(post.createdAt).toLocaleDateString()}
-                                                </span>
+                                    <div key={post.id} className="border rounded-lg p-3 hover:bg-muted/20 relative">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-6 w-6">
+                                                    <AvatarImage src={post.authorAvatar || ''} />
+                                                    <AvatarFallback>{(post.authorName || 'U')[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium text-xs">{post.authorName}</span>
+                                                    <span className="text-[10px] text-muted-foreground">
+                                                        {new Date(post.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                </div>
                                             </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 ml-auto"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleDeletePost(post.id)
+                                                }}
+                                            >
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
                                         </div>
                                         <h5 className="font-semibold text-sm mb-1">{post.title}</h5>
                                         <p className="text-sm text-muted-foreground line-clamp-3 mb-2">{post.content}</p>

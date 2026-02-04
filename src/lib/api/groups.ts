@@ -22,6 +22,11 @@ class GroupsApi {
             participantCount: 0
         } as Group
     }
+
+    async deletePost(postId: string) {
+        const response = await apiClient.delete<{ success: boolean; message: string }>(`/community/posts/${postId}`)
+        return response.success
+    }
 }
 
 export const groupsApi = new GroupsApi()
