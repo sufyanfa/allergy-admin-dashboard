@@ -287,7 +287,12 @@
         "ingredientNameArPlaceholder": "اسم المكون بالعربية *",
         "ingredientNameEnPlaceholder": "Ingredient name in English",
         "addIngredient": "إضافة مكون",
-        "ingredientsList": "قائمة المكونات"
+        "ingredientsList": "قائمة المكونات",
+        "totalProducts": "إجمالي المنتجات",
+        "categories": "الفئات",
+        "acrossAllSources": "من جميع المصادر",
+        "totalItems": "إجمالي العناصر",
+        "products": "المنتجات"
     },
     "lists": {
         "title": "إدارة القوائم",

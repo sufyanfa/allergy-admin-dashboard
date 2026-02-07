@@ -287,7 +287,12 @@
         "ingredientNameArPlaceholder": "اسم المكون بالعربية *",
         "ingredientNameEnPlaceholder": "Ingredient name in English",
         "addIngredient": "Add Ingredient",
-        "ingredientsList": "Ingredients List"
+        "ingredientsList": "Ingredients List",
+        "totalProducts": "Total Products",
+        "categories": "Categories",
+        "acrossAllSources": "Across all sources",
+        "totalItems": "Total Items",
+        "products": "Products"
     },
     "lists": {
         "title": "Lists Management",

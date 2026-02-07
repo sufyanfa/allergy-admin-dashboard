@@ -193,7 +193,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
           title={t("totalProducts")}
           value={overview?.totalProducts || 0}
           icon="package"
-          description="Across all sources"
+          description={t("acrossAllSources")}
           loading={isLoading}
         />
 
@@ -231,7 +231,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
           onRefresh={handleRefresh}
           centerText={overview ? {
             primary: overview.categoriesCount.toString(),
-            secondary: 'Categories'
+            secondary: t('categories')
           } : undefined}
         />
 
@@ -242,7 +242,7 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
           onRefresh={handleRefresh}
           centerText={overview ? {
             primary: overview.totalProducts.toString(),
-            secondary: 'Total Products'
+            secondary: t('totalProducts')
           } : undefined}
         />
       </div>

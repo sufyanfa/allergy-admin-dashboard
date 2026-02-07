@@ -486,7 +486,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">
-                      {user.email || 'No email'} • {user.allergiesCount || 0} allergies
+                      {user.email || user.phone || 'No contact'} • {user.allergiesCount || 0} allergies
                     </p>
                     <p className="text-xs text-muted-foreground mb-2">
                       Joined {new Date(user.createdAt).toLocaleDateString()}

@@ -34,7 +34,7 @@ interface UsersActions {
   deleteUser: (id: string) => Promise<void>
   searchUsers: (query: string) => Promise<void>
   setFilters: (filters: Partial<UsersState['filters']>) => void
-  setPagination: (page: number, limit?: number) => void
+  setPagination: (page: number, limit?: number) => Promise<void>
   clearError: () => void
   setSelectedUser: (user: User | null) => void
 }
@@ -67,8 +67,18 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
     set({ loading: true, error: null })
 
     try {
+      const { filters, pagination } = get()
+      const params: Record<string, unknown> = {
+        limit: pagination.limit,
+        offset: (pagination.page - 1) * pagination.limit,
+      }
+      if (filters.search) params.search = filters.search
+      if (filters.role) params.role = filters.role
+      if (filters.status) params.status = filters.status
+
       const response = await apiClient.get<ApiResponse<UsersOverviewResponse>>(
-        '/admin/users/overview'
+        '/admin/users/overview',
+        { params }
       )
 
       if (response.success && response.data) {
@@ -330,7 +340,7 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
     })
   },
 
-  setPagination: (page: number, limit?: number) => {
+  setPagination: async (page: number, limit?: number) => {
     const { pagination } = get()
     set({
       pagination: {
@@ -339,6 +349,7 @@ export const useUsersStore = create<UsersStore>((set, get) => ({
         ...(limit && { limit }),
       },
     })
+    await get().fetchUsersOverview()
   },
 
   clearError: () => {

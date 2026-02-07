@@ -24,12 +24,12 @@ class GroupsApi {
     }
 
     async deletePost(postId: string) {
-        const response = await apiClient.delete<{ success: boolean; message: string }>(`/community/posts/${postId}`)
+        const response = await apiClient.delete<{ success: boolean; message: string }>(`/community/groups/posts/${postId}`)
         return response.success
     }
 
     async deleteComment(commentId: string) {
-        const response = await apiClient.delete<{ success: boolean; message: string }>(`/community/comments/${commentId}`)
+        const response = await apiClient.delete<{ success: boolean; message: string }>(`/community/groups/comments/${commentId}`)
         return response.success
     }
 }
