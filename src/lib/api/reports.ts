@@ -5,6 +5,8 @@ export interface GroupReport {
     id: string
     reason: string
     details: string | null
+    status: string
+    dismissedAt: string | null
     createdAt: string
     reporterName: string
     postId: string | null

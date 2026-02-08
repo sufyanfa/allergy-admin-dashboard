@@ -658,6 +658,25 @@
         "contentDeleted": "تم حذف المحتوى بنجاح",
         "failedToLoad": "فشل تحميل البلاغات",
         "failedToDismiss": "فشل في تجاهل البلاغ",
-        "failedToDelete": "فشل في حذف المحتوى"
+        "failedToDelete": "فشل في حذف المحتوى",
+        "status": "الحالة",
+        "statuses": {
+            "pending": "قيد المراجعة",
+            "dismissed": "تم التجاهل"
+        },
+        "viewDetails": "عرض التفاصيل",
+        "reportDetails": "تفاصيل البلاغ",
+        "reportDetailsDescription": "معلومات البلاغ الكاملة والمحتوى المُبلغ عنه",
+        "reporterDetails": "تفاصيل المُبلغ",
+        "postTitle": "عنوان المنشور",
+        "postContent": "محتوى المنشور",
+        "commentContent": "محتوى التعليق",
+        "dismissedAt": "تاريخ التجاهل",
+        "reasons": {
+            "spam": "محتوى مزعج",
+            "inappropriate": "غير لائق",
+            "misinformation": "معلومات مضللة",
+            "other": "أخرى"
+        }
     }
 }

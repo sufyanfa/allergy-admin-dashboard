@@ -658,6 +658,25 @@
         "contentDeleted": "Content deleted",
         "failedToLoad": "Failed to load reports",
         "failedToDismiss": "Failed to dismiss report",
-        "failedToDelete": "Failed to delete content"
+        "failedToDelete": "Failed to delete content",
+        "status": "Status",
+        "statuses": {
+            "pending": "Pending",
+            "dismissed": "Dismissed"
+        },
+        "viewDetails": "View Details",
+        "reportDetails": "Report Details",
+        "reportDetailsDescription": "Full report information and reported content",
+        "reporterDetails": "Reporter's Details",
+        "postTitle": "Post Title",
+        "postContent": "Post Content",
+        "commentContent": "Comment Content",
+        "dismissedAt": "Dismissed At",
+        "reasons": {
+            "spam": "Spam",
+            "inappropriate": "Inappropriate",
+            "misinformation": "Misinformation",
+            "other": "Other"
+        }
     }
 }
