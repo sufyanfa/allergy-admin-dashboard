@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -44,7 +45,7 @@ const iconMap = {
   database: Database,
 }
 
-export function StatsCard({
+export const StatsCard = memo(function StatsCard({
   title,
   value,
   change,
@@ -152,4 +153,4 @@ export function StatsCard({
       </CardContent>
     </Card>
   )
-}
+})

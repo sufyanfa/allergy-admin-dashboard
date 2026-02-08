@@ -1,16 +1,47 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useStatisticsStore, useStatisticsOverview, useKeyMetrics } from '@/lib/stores/statistics-store'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import dynamic from 'next/dynamic'
+import { useShallow } from 'zustand/react/shallow'
+import { useStatisticsStore } from '@/lib/stores/statistics-store'
 import { StatsCard } from './stats-card'
 import { SystemHealth } from './system-health'
-import { GrowthChart } from './growth-chart'
-import { DistributionChart } from './distribution-chart'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Download, Activity } from 'lucide-react'
 import { StatisticsService } from '@/lib/api/statistics'
 import { cn } from '@/lib/utils'
 import { useTranslations } from '@/lib/hooks/use-translations'
+
+// Lazy load chart components to defer ~50KB Chart.js bundle
+const GrowthChart = dynamic(
+  () => import('./growth-chart').then(m => ({ default: m.GrowthChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-lg border p-6">
+        <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4" />
+        <div className="h-64 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+          <div className="text-gray-400">Loading chart...</div>
+        </div>
+      </div>
+    ),
+  }
+)
+
+const DistributionChart = dynamic(
+  () => import('./distribution-chart').then(m => ({ default: m.DistributionChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-lg border p-6">
+        <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4" />
+        <div className="h-64 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+          <div className="text-gray-400">Loading chart...</div>
+        </div>
+      </div>
+    ),
+  }
+)
 
 interface DashboardOverviewProps {
   className?: string
@@ -19,58 +50,82 @@ interface DashboardOverviewProps {
 export function DashboardOverview({ className }: DashboardOverviewProps) {
   const t = useTranslations('dashboard')
   const tCommon = useTranslations('common')
+  const initializedRef = useRef(false)
 
+  // Select data and loading states with useShallow to prevent re-renders
+  // when unrelated store properties change
   const {
+    dashboardOverview,
+    keyMetrics,
     userStatistics,
     productStatistics,
     activityStatistics,
     userGrowth,
     productGrowth,
-    fetchUserStatistics,
-    fetchProductStatistics,
-    fetchActivityStatistics,
-    fetchUserGrowth,
-    fetchProductGrowth,
+    isLoadingOverview,
+    isLoadingKeyMetrics,
     isLoadingUserStats,
     isLoadingProductStats,
     isLoadingActivityStats,
-    error
-  } = useStatisticsStore()
+    error,
+  } = useStatisticsStore(
+    useShallow((state) => ({
+      dashboardOverview: state.dashboardOverview,
+      keyMetrics: state.keyMetrics,
+      userStatistics: state.userStatistics,
+      productStatistics: state.productStatistics,
+      activityStatistics: state.activityStatistics,
+      userGrowth: state.userGrowth,
+      productGrowth: state.productGrowth,
+      isLoadingOverview: state.isLoadingOverview,
+      isLoadingKeyMetrics: state.isLoadingKeyMetrics,
+      isLoadingUserStats: state.isLoadingUserStats,
+      isLoadingProductStats: state.isLoadingProductStats,
+      isLoadingActivityStats: state.isLoadingActivityStats,
+      error: state.error,
+    }))
+  )
 
-  const { data: overview, loading: overviewLoading, fetch: fetchOverview } = useStatisticsOverview()
-  const { data: keyMetrics, loading: keyMetricsLoading, fetch: fetchKeyMetrics } = useKeyMetrics()
+  // Select actions individually — these are stable references in Zustand 5
+  const fetchOverview = useStatisticsStore((s) => s.fetchDashboardOverview)
+  const fetchKeyMetrics = useStatisticsStore((s) => s.fetchKeyMetrics)
+  const fetchUserStatistics = useStatisticsStore((s) => s.fetchUserStatistics)
+  const fetchProductStatistics = useStatisticsStore((s) => s.fetchProductStatistics)
+  const fetchActivityStatistics = useStatisticsStore((s) => s.fetchActivityStatistics)
+  const fetchUserGrowth = useStatisticsStore((s) => s.fetchUserGrowth)
+  const fetchProductGrowth = useStatisticsStore((s) => s.fetchProductGrowth)
 
   const [userGrowthPeriod, setUserGrowthPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
   const [productGrowthPeriod, setProductGrowthPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
 
+  // Initialize data ONCE on mount — no function refs in deps
   useEffect(() => {
-    // Initial data fetch
-    const initializeData = async () => {
-      await Promise.allSettled([
-        fetchOverview(),
-        fetchKeyMetrics(),
-        fetchUserStatistics(),
-        fetchProductStatistics(),
-        fetchActivityStatistics(),
-        fetchUserGrowth(userGrowthPeriod),
-        fetchProductGrowth(productGrowthPeriod)
-      ])
-    }
+    if (initializedRef.current) return
+    initializedRef.current = true
 
-    initializeData()
-  }, [
-    fetchOverview,
-    fetchKeyMetrics,
-    fetchUserStatistics,
-    fetchProductStatistics,
-    fetchActivityStatistics,
-    fetchUserGrowth,
-    fetchProductGrowth,
-    userGrowthPeriod,
-    productGrowthPeriod
-  ])
+    Promise.allSettled([
+      fetchOverview(),
+      fetchKeyMetrics(),
+      fetchUserStatistics(),
+      fetchProductStatistics(),
+      fetchActivityStatistics(),
+      fetchUserGrowth('daily'),
+      fetchProductGrowth('daily'),
+    ])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleRefreshAll = async () => {
+  // Re-fetch growth data only when the period selector changes
+  useEffect(() => {
+    if (!initializedRef.current) return
+    fetchUserGrowth(userGrowthPeriod)
+  }, [userGrowthPeriod, fetchUserGrowth])
+
+  useEffect(() => {
+    if (!initializedRef.current) return
+    fetchProductGrowth(productGrowthPeriod)
+  }, [productGrowthPeriod, fetchProductGrowth])
+
+  const handleRefreshAll = useCallback(async () => {
     await Promise.allSettled([
       fetchOverview(),
       fetchKeyMetrics(),
@@ -78,23 +133,26 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       fetchProductStatistics(),
       fetchActivityStatistics(),
       fetchUserGrowth(userGrowthPeriod),
-      fetchProductGrowth(productGrowthPeriod)
+      fetchProductGrowth(productGrowthPeriod),
     ])
-  }
+  }, [
+    fetchOverview, fetchKeyMetrics, fetchUserStatistics,
+    fetchProductStatistics, fetchActivityStatistics,
+    fetchUserGrowth, fetchProductGrowth,
+    userGrowthPeriod, productGrowthPeriod,
+  ])
 
-  const handleExport = async (format: 'json' | 'csv') => {
+  const handleExport = useCallback(async (format: 'json' | 'csv') => {
     try {
       const result = await StatisticsService.exportDashboardData({
         period: '30d',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        format
+        format,
       })
 
       if (format === 'csv') {
-        // CSV download is handled automatically in the service
         alert(t('exportSuccess'))
       } else {
-        // For JSON, we can show a success message or handle differently
         console.log('Export data:', result)
         alert(t('exportComplete'))
       }
@@ -102,9 +160,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       console.error('Export failed:', error)
       alert(`${t('exportFailed')}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-  }
+  }, [t])
 
-  const handleTestConnection = async () => {
+  const handleTestConnection = useCallback(async () => {
     try {
       console.log('Testing API connection...')
       await StatisticsService.testConnection()
@@ -113,39 +171,75 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       console.error('Connection test failed:', error)
       alert(`❌ ${t('connectionFailed')}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-  }
+  }, [t])
 
-  const handleUserGrowthPeriodChange = (period: 'daily' | 'weekly' | 'monthly') => {
+  // Period change handlers — only set state, useEffect handles the fetch
+  const handleUserGrowthPeriodChange = useCallback((period: 'daily' | 'weekly' | 'monthly') => {
     setUserGrowthPeriod(period)
-    fetchUserGrowth(period)
-  }
+  }, [])
 
-  const handleProductGrowthPeriodChange = (period: 'daily' | 'weekly' | 'monthly') => {
+  const handleProductGrowthPeriodChange = useCallback((period: 'daily' | 'weekly' | 'monthly') => {
     setProductGrowthPeriod(period)
-    fetchProductGrowth(period)
-  }
+  }, [])
 
-  // Transform data for charts
-  const userDemographicsData = userStatistics?.demographics.byRole.map((item, index) => ({
-    label: item.role,
-    value: item.count,
-    percentage: item.percentage,
-    color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'][index % 4]
-  })) || null
+  // Memoize refresh callbacks for chart components
+  const handleUserGrowthRefresh = useCallback(() => {
+    fetchUserGrowth(userGrowthPeriod)
+  }, [fetchUserGrowth, userGrowthPeriod])
 
-  const productCategoriesData = productStatistics?.categories.slice(0, 8).map((item, index) => ({
-    label: item.category,
-    value: item.count,
-    percentage: item.percentage,
-    color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'][index % 8]
-  })) || null
+  const handleProductGrowthRefresh = useCallback(() => {
+    fetchProductGrowth(productGrowthPeriod)
+  }, [fetchProductGrowth, productGrowthPeriod])
 
-  const productDataSourcesData = productStatistics?.dataSources.map((item, index) => ({
-    label: item.source,
-    value: item.count,
-    percentage: item.percentage,
-    color: ['#3B82F6', '#10B981', '#F59E0B'][index % 3]
-  })) || null
+  // Memoize chart data transformations to prevent Chart.js re-initialization
+  const userDemographicsData = useMemo(() => {
+    return userStatistics?.demographics.byRole.map((item, index) => ({
+      label: item.role,
+      value: item.count,
+      percentage: item.percentage,
+      color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'][index % 4],
+    })) || null
+  }, [userStatistics])
+
+  const productCategoriesData = useMemo(() => {
+    return productStatistics?.categories.slice(0, 8).map((item, index) => ({
+      label: item.category,
+      value: item.count,
+      percentage: item.percentage,
+      color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'][index % 8],
+    })) || null
+  }, [productStatistics])
+
+  const productDataSourcesData = useMemo(() => {
+    return productStatistics?.dataSources.map((item, index) => ({
+      label: item.source,
+      value: item.count,
+      percentage: item.percentage,
+      color: ['#3B82F6', '#10B981', '#F59E0B'][index % 3],
+    })) || null
+  }, [productStatistics])
+
+  // Memoize center text objects for distribution charts
+  const userCenterText = useMemo(() => {
+    return userStatistics ? {
+      primary: userStatistics.overview.totalUsers.toLocaleString(),
+      secondary: t('totalUsers'),
+    } : undefined
+  }, [userStatistics, t])
+
+  const categoriesCenterText = useMemo(() => {
+    return productStatistics ? {
+      primary: productStatistics.overview.categoriesCount.toString(),
+      secondary: t('categories'),
+    } : undefined
+  }, [productStatistics, t])
+
+  const sourcesCenterText = useMemo(() => {
+    return productStatistics ? {
+      primary: (productStatistics.overview.avgConfidenceScore * 100).toFixed(0) + '%',
+      secondary: t('avgQuality'),
+    } : undefined
+  }, [productStatistics, t])
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -193,13 +287,13 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           title={t('totalUsers')}
           value={keyMetrics?.totalUsers || 0}
           change={{
-            value: overview?.users.growthRate || 0,
-            type: (overview?.users.growthRate || 0) >= 0 ? 'increase' : 'decrease',
-            period: t('vsLastPeriod')
+            value: dashboardOverview?.users.growthRate || 0,
+            type: (dashboardOverview?.users.growthRate || 0) >= 0 ? 'increase' : 'decrease',
+            period: t('vsLastPeriod'),
           }}
           icon="users"
           description={t('activeRegisteredUsers')}
-          loading={keyMetricsLoading || overviewLoading}
+          loading={isLoadingKeyMetrics || isLoadingOverview}
         />
 
         <StatsCard
@@ -208,11 +302,11 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           change={{
             value: 5.2,
             type: 'increase',
-            period: t('vsLastMonth')
+            period: t('vsLastMonth'),
           }}
           icon="package"
           description={t('productsInDatabase')}
-          loading={keyMetricsLoading}
+          loading={isLoadingKeyMetrics}
         />
 
         <StatsCard
@@ -221,11 +315,11 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           change={{
             value: 12.4,
             type: 'increase',
-            period: t('vsLastWeek')
+            period: t('vsLastWeek'),
           }}
           icon="activity"
           description={t('searchQueriesPerformed')}
-          loading={keyMetricsLoading}
+          loading={isLoadingKeyMetrics}
         />
 
         <StatsCard
@@ -234,11 +328,11 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           change={{
             value: 0.1,
             type: 'increase',
-            period: t('vsLastMonth')
+            period: t('vsLastMonth'),
           }}
           icon="server"
           description={t('serviceAvailability')}
-          loading={keyMetricsLoading}
+          loading={isLoadingKeyMetrics}
         />
       </div>
 
@@ -249,7 +343,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           data={userGrowth[userGrowthPeriod] || null}
           loading={isLoadingUserStats}
           onPeriodChange={handleUserGrowthPeriodChange}
-          onRefresh={() => fetchUserGrowth(userGrowthPeriod)}
+          onRefresh={handleUserGrowthRefresh}
           showCumulative={true}
         />
 
@@ -258,7 +352,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           data={productGrowth[productGrowthPeriod] || null}
           loading={isLoadingProductStats}
           onPeriodChange={handleProductGrowthPeriodChange}
-          onRefresh={() => fetchProductGrowth(productGrowthPeriod)}
+          onRefresh={handleProductGrowthRefresh}
           showCumulative={true}
         />
       </div>
@@ -270,10 +364,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           data={userDemographicsData}
           loading={isLoadingUserStats}
           onRefresh={fetchUserStatistics}
-          centerText={userStatistics ? {
-            primary: userStatistics.overview.totalUsers.toLocaleString(),
-            secondary: t('totalUsers')
-          } : undefined}
+          centerText={userCenterText}
         />
 
         <DistributionChart
@@ -281,10 +372,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           data={productCategoriesData}
           loading={isLoadingProductStats}
           onRefresh={fetchProductStatistics}
-          centerText={productStatistics ? {
-            primary: productStatistics.overview.categoriesCount.toString(),
-            secondary: t('categories')
-          } : undefined}
+          centerText={categoriesCenterText}
         />
 
         <DistributionChart
@@ -292,10 +380,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           data={productDataSourcesData}
           loading={isLoadingProductStats}
           onRefresh={fetchProductStatistics}
-          centerText={productStatistics ? {
-            primary: (productStatistics.overview.avgConfidenceScore * 100).toFixed(0) + '%',
-            secondary: t('avgQuality')
-          } : undefined}
+          centerText={sourcesCenterText}
         />
       </div>
 

@@ -14,7 +14,7 @@ import {
   Zap,
   TrendingUp
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 
 interface SystemHealthProps {
   className?: string
@@ -28,20 +28,54 @@ export function SystemHealth({
   refreshInterval = 30000 // 30 seconds
 }: SystemHealthProps) {
   const { data: systemHealth, loading, fetch } = useSystemHealth()
+  const initializedRef = useRef(false)
+
+  // Stable callback to avoid interval recreation
+  const fetchHealth = useCallback(() => {
+    fetch()
+  }, [fetch])
 
   useEffect(() => {
-    // Initial fetch
-    fetch()
-
-    // Set up auto-refresh
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetch()
-      }, refreshInterval)
-
-      return () => clearInterval(interval)
+    // Initial fetch once
+    if (!initializedRef.current) {
+      initializedRef.current = true
+      fetchHealth()
     }
-  }, [fetch, autoRefresh, refreshInterval])
+
+    if (!autoRefresh) return
+
+    // Pause polling when tab is hidden to save bandwidth
+    let interval: ReturnType<typeof setInterval> | null = null
+
+    const startPolling = () => {
+      if (interval) clearInterval(interval)
+      interval = setInterval(fetchHealth, refreshInterval)
+    }
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval)
+        interval = null
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchHealth() // Refresh immediately when tab becomes visible
+        startPolling()
+      } else {
+        stopPolling()
+      }
+    }
+
+    startPolling()
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      stopPolling()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [fetchHealth, autoRefresh, refreshInterval])
 
   const getStatusConfig = (status: 'healthy' | 'degraded' | 'critical') => {
     switch (status) {

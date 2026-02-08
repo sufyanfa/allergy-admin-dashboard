@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, memo } from 'react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -43,7 +43,7 @@ interface GrowthChartProps {
   showCumulative?: boolean
 }
 
-export function GrowthChart({
+export const GrowthChart = memo(function GrowthChart({
   title,
   data,
   loading = false,
@@ -261,4 +261,4 @@ export function GrowthChart({
       </CardContent>
     </Card>
   )
-}
+})

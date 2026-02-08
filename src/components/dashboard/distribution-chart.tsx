@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, memo } from 'react'
 import {
   Chart as ChartJS,
   ArcElement,
@@ -50,7 +50,7 @@ const DEFAULT_COLORS = [
   '#6B7280', // gray-500
 ]
 
-export function DistributionChart({
+export const DistributionChart = memo(function DistributionChart({
   title,
   data,
   loading = false,
@@ -253,4 +253,4 @@ export function DistributionChart({
       </CardContent>
     </Card>
   )
-}
+})

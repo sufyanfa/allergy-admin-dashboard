@@ -452,33 +452,41 @@ export const useStatisticsStore = create<StatisticsStore>()(
   )
 )
 
-// Convenience hooks for specific data
+// Convenience hooks using useShallow to prevent unnecessary re-renders
+import { useShallow } from 'zustand/react/shallow'
+
 export const useStatisticsOverview = () => {
-  const { dashboardOverview, isLoadingOverview, fetchDashboardOverview } = useStatisticsStore()
-  return { data: dashboardOverview, loading: isLoadingOverview, fetch: fetchDashboardOverview }
+  return useStatisticsStore(
+    useShallow((s) => ({ data: s.dashboardOverview, loading: s.isLoadingOverview, fetch: s.fetchDashboardOverview }))
+  )
 }
 
 export const useKeyMetrics = () => {
-  const { keyMetrics, isLoadingKeyMetrics, fetchKeyMetrics } = useStatisticsStore()
-  return { data: keyMetrics, loading: isLoadingKeyMetrics, fetch: fetchKeyMetrics }
+  return useStatisticsStore(
+    useShallow((s) => ({ data: s.keyMetrics, loading: s.isLoadingKeyMetrics, fetch: s.fetchKeyMetrics }))
+  )
 }
 
 export const useSystemHealth = () => {
-  const { systemHealth, isLoadingSystemHealth, fetchSystemHealth } = useStatisticsStore()
-  return { data: systemHealth, loading: isLoadingSystemHealth, fetch: fetchSystemHealth }
+  return useStatisticsStore(
+    useShallow((s) => ({ data: s.systemHealth, loading: s.isLoadingSystemHealth, fetch: s.fetchSystemHealth }))
+  )
 }
 
 export const useUserStatistics = () => {
-  const { userStatistics, isLoadingUserStats, fetchUserStatistics } = useStatisticsStore()
-  return { data: userStatistics, loading: isLoadingUserStats, fetch: fetchUserStatistics }
+  return useStatisticsStore(
+    useShallow((s) => ({ data: s.userStatistics, loading: s.isLoadingUserStats, fetch: s.fetchUserStatistics }))
+  )
 }
 
 export const useProductStatistics = () => {
-  const { productStatistics, isLoadingProductStats, fetchProductStatistics } = useStatisticsStore()
-  return { data: productStatistics, loading: isLoadingProductStats, fetch: fetchProductStatistics }
+  return useStatisticsStore(
+    useShallow((s) => ({ data: s.productStatistics, loading: s.isLoadingProductStats, fetch: s.fetchProductStatistics }))
+  )
 }
 
 export const useActivityStatistics = () => {
-  const { activityStatistics, isLoadingActivityStats, fetchActivityStatistics } = useStatisticsStore()
-  return { data: activityStatistics, loading: isLoadingActivityStats, fetch: fetchActivityStatistics }
+  return useStatisticsStore(
+    useShallow((s) => ({ data: s.activityStatistics, loading: s.isLoadingActivityStats, fetch: s.fetchActivityStatistics }))
+  )
 }
