@@ -86,61 +86,36 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     }))
   )
 
-  // Select actions individually — these are stable references in Zustand 5
-  const fetchOverview = useStatisticsStore((s) => s.fetchDashboardOverview)
-  const fetchKeyMetrics = useStatisticsStore((s) => s.fetchKeyMetrics)
-  const fetchUserStatistics = useStatisticsStore((s) => s.fetchUserStatistics)
-  const fetchProductStatistics = useStatisticsStore((s) => s.fetchProductStatistics)
-  const fetchActivityStatistics = useStatisticsStore((s) => s.fetchActivityStatistics)
+  // Single-fetch action that populates all dashboard data from one API call
+  const fetchAllOverviewData = useStatisticsStore((s) => s.fetchAllOverviewData)
   const fetchUserGrowth = useStatisticsStore((s) => s.fetchUserGrowth)
   const fetchProductGrowth = useStatisticsStore((s) => s.fetchProductGrowth)
 
   const [userGrowthPeriod, setUserGrowthPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
   const [productGrowthPeriod, setProductGrowthPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
 
-  // Initialize data ONCE on mount — no function refs in deps
+  // Initialize data ONCE on mount — single API call populates all slices
   useEffect(() => {
     if (initializedRef.current) return
     initializedRef.current = true
 
-    Promise.allSettled([
-      fetchOverview(),
-      fetchKeyMetrics(),
-      fetchUserStatistics(),
-      fetchProductStatistics(),
-      fetchActivityStatistics(),
-      fetchUserGrowth('daily'),
-      fetchProductGrowth('daily'),
-    ])
+    fetchAllOverviewData()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-fetch growth data only when the period selector changes
+  // Re-fetch growth data only when the period selector changes (non-daily)
   useEffect(() => {
-    if (!initializedRef.current) return
+    if (!initializedRef.current || userGrowthPeriod === 'daily') return
     fetchUserGrowth(userGrowthPeriod)
   }, [userGrowthPeriod, fetchUserGrowth])
 
   useEffect(() => {
-    if (!initializedRef.current) return
+    if (!initializedRef.current || productGrowthPeriod === 'daily') return
     fetchProductGrowth(productGrowthPeriod)
   }, [productGrowthPeriod, fetchProductGrowth])
 
   const handleRefreshAll = useCallback(async () => {
-    await Promise.allSettled([
-      fetchOverview(),
-      fetchKeyMetrics(),
-      fetchUserStatistics(),
-      fetchProductStatistics(),
-      fetchActivityStatistics(),
-      fetchUserGrowth(userGrowthPeriod),
-      fetchProductGrowth(productGrowthPeriod),
-    ])
-  }, [
-    fetchOverview, fetchKeyMetrics, fetchUserStatistics,
-    fetchProductStatistics, fetchActivityStatistics,
-    fetchUserGrowth, fetchProductGrowth,
-    userGrowthPeriod, productGrowthPeriod,
-  ])
+    await fetchAllOverviewData()
+  }, [fetchAllOverviewData])
 
   const handleExport = useCallback(async (format: 'json' | 'csv') => {
     try {
@@ -363,7 +338,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           title={t('userDistributionByRole')}
           data={userDemographicsData}
           loading={isLoadingUserStats}
-          onRefresh={fetchUserStatistics}
+          onRefresh={fetchAllOverviewData}
           centerText={userCenterText}
         />
 
@@ -371,7 +346,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           title={t('productCategories')}
           data={productCategoriesData}
           loading={isLoadingProductStats}
-          onRefresh={fetchProductStatistics}
+          onRefresh={fetchAllOverviewData}
           centerText={categoriesCenterText}
         />
 
@@ -379,7 +354,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           title={t('productDataSources')}
           data={productDataSourcesData}
           loading={isLoadingProductStats}
-          onRefresh={fetchProductStatistics}
+          onRefresh={fetchAllOverviewData}
           centerText={sourcesCenterText}
         />
       </div>

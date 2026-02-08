@@ -510,6 +510,16 @@ class StatisticsServiceClass {
       signal
     )
   }
+
+  /**
+   * Fetch the overview endpoint ONCE and return the raw API response.
+   * Callers can transform it into whatever shape they need.
+   */
+  async getRawOverview(params: { period?: string; timezone?: string } = {}, signal?: AbortSignal): Promise<StatisticsApiResponse['data']> {
+    const { period = '30d', timezone = Intl.DateTimeFormat().resolvedOptions().timeZone } = params
+    const url = `${API_ENDPOINTS.STATISTICS.OVERVIEW}?period=${period}&timezone=${encodeURIComponent(timezone)}`
+    return this.fetchData<StatisticsApiResponse['data']>(url, 'Failed to fetch dashboard overview', signal)
+  }
 }
 
 // Create singleton instance

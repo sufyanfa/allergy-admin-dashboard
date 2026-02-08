@@ -81,9 +81,9 @@ export const API_ENDPOINTS = {
     PRODUCT: (productId: string) => `/admin/analytics/products/${productId}`,
   },
   REPORTS: {
-    LIST: '/admin/reports',
-    RESOLVE: (id: string) => `/admin/reports/${id}/resolve`,
-    DISMISS: (id: string) => `/admin/reports/${id}/dismiss`,
+    LIST: '/community/groups/admin/reports',
+    RESOLVE: (id: string) => `/community/groups/admin/reports/${id}/resolve`,
+    DISMISS: (id: string) => `/community/groups/admin/reports/${id}`,
   },
 } as const
 

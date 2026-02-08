@@ -19,7 +19,6 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
-        'User-Agent': 'Allergy-Checker-Admin/1.0.0',
       },
       withCredentials: true, // Important for CORS with credentials
     })

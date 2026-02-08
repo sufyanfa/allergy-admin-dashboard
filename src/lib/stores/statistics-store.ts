@@ -8,8 +8,155 @@ import type {
   UserStatistics,
   GrowthData,
   ProductStatistics,
-  ActivityStatistics
+  ActivityStatistics,
+  StatisticsApiResponse
 } from '@/types'
+
+// Helper: transform raw API response into all derived state slices
+function transformOverviewResponse(response: StatisticsApiResponse['data']) {
+  const dashboardOverview: DashboardOverview = {
+    users: {
+      total: response.overview?.totalUsers?.count || 0,
+      active: response.overview?.totalUsers?.count || 0,
+      newToday: 0,
+      growthRate: response.overview?.totalUsers?.growthPercentage || 0
+    },
+    products: {
+      total: response.overview?.totalProducts?.count || 0,
+      verified: Math.round((response.overview?.totalProducts?.count || 0) * (response.realtime?.verifiedProductsPercentage || 0) / 100),
+      newToday: 0,
+      categoriesCount: response.charts?.productCategories?.length || 0
+    },
+    activity: {
+      totalSearches: response.overview?.totalSearches?.count || 0,
+      searchesToday: response.realtime?.searchesToday || 0,
+      avgResponseTime: response.realtime?.avgSearchTimeMs || 0,
+      contributionsToday: response.realtime?.contributionsToday || 0
+    },
+    system: {
+      uptime: response.overview?.systemUptime?.percentage || 0,
+      lastRestart: response.overview?.systemUptime?.lastRestart || new Date().toISOString()
+    }
+  }
+
+  const keyMetrics: KeyMetrics = {
+    totalUsers: response.overview?.totalUsers?.count || 0,
+    activeUsers: response.overview?.totalUsers?.count || 0,
+    totalProducts: response.overview?.totalProducts?.count || 0,
+    verifiedProducts: Math.round((response.overview?.totalProducts?.count || 0) * (response.realtime?.verifiedProductsPercentage || 0) / 100),
+    totalSearches: response.overview?.totalSearches?.count || 0,
+    totalContributions: response.realtime?.contributionsToday || 0,
+    avgSearchTime: response.realtime?.avgSearchTimeMs || 0,
+    userGrowthRate: response.overview?.totalUsers?.growthPercentage || 0,
+    productGrowthRate: response.overview?.totalProducts?.growthPercentage || 0,
+    systemUptime: (response.overview?.systemUptime?.percentage || 0) / 100
+  }
+
+  const userStatistics: UserStatistics = {
+    overview: {
+      totalUsers: response.overview?.totalUsers?.count || 0,
+      activeUsers: response.overview?.totalUsers?.count || 0,
+      inactiveUsers: 0,
+      suspendedUsers: 0,
+      newUsersToday: 0,
+      newUsersThisWeek: 0,
+      newUsersThisMonth: 0,
+      growthRate: response.overview?.totalUsers?.growthPercentage || 0
+    },
+    demographics: {
+      byLanguage: [],
+      byRole: response.charts?.userRoleDistribution || [],
+      byStatus: [],
+      byLocation: []
+    }
+  }
+
+  const productStatistics: ProductStatistics = {
+    overview: {
+      totalProducts: response.overview?.totalProducts?.count || 0,
+      verifiedProducts: Math.round((response.overview?.totalProducts?.count || 0) * (response.realtime?.verifiedProductsPercentage || 0) / 100),
+      unverifiedProducts: 0,
+      newProductsToday: 0,
+      newProductsThisWeek: 0,
+      newProductsThisMonth: 0,
+      avgConfidenceScore: 0.85,
+      categoriesCount: response.charts?.productCategories?.length || 0
+    },
+    categories: (response.charts?.productCategories || []).map(cat => ({
+      ...cat,
+      verified: 0,
+      avgConfidence: 0.85
+    })),
+    dataSources: (response.charts?.productDataSources || []).map(source => ({
+      ...source,
+      source: source.source as "api" | "manual" | "community",
+      avgConfidence: 0.85
+    })),
+    quality: {
+      highConfidence: 0,
+      mediumConfidence: 0,
+      lowConfidence: 0,
+      avgConfidenceScore: 0.85,
+      verificationRate: (response.realtime?.verifiedProductsPercentage || 0) / 100
+    }
+  }
+
+  const activityStatistics: ActivityStatistics = {
+    overview: {
+      totalSearches: response.overview?.totalSearches?.count || 0,
+      searchesToday: response.realtime?.searchesToday || 0,
+      searchesThisWeek: 0,
+      searchesThisMonth: 0,
+      avgSearchTime: response.realtime?.avgSearchTimeMs || 0,
+      totalContributions: 0,
+      contributionsToday: response.realtime?.contributionsToday || 0,
+      contributionsThisWeek: 0,
+      contributionsThisMonth: 0,
+      avgContributionsPerUser: 0
+    },
+    searches: {
+      byType: [],
+      byResult: [],
+      avgResponseTime: response.realtime?.avgSearchTimeMs || 0,
+      popularQueries: []
+    },
+    contributions: {
+      byType: [],
+      byStatus: [],
+      topContributors: []
+    },
+    experiences: {
+      totalReports: 0,
+      byReaction: [],
+      bySeverity: [],
+      avgRating: 0
+    }
+  }
+
+  const userGrowthData: GrowthData = {
+    period: 'daily',
+    data: (response.charts?.userGrowth || []).map((item) => ({
+      date: item.date,
+      value: item.count,
+      cumulative: item.count
+    })),
+    totalGrowth: response.overview?.totalUsers?.growthPercentage || 0,
+    periodGrowth: response.overview?.totalUsers?.growthPercentage || 0
+  }
+
+  const productGrowthData: GrowthData = {
+    period: 'daily',
+    data: (response.charts?.productGrowth || []).map((item) => ({
+      date: item.date,
+      value: item.count,
+      cumulative: item.count
+    })),
+    totalGrowth: response.overview?.totalProducts?.growthPercentage || 0,
+    periodGrowth: response.overview?.totalProducts?.growthPercentage || 0
+  }
+
+  return { dashboardOverview, keyMetrics, userStatistics, productStatistics, activityStatistics, userGrowthData, productGrowthData }
+}
 
 interface StatisticsState {
   // Data
@@ -53,7 +200,10 @@ interface StatisticsState {
 }
 
 interface StatisticsActions {
-  // Dashboard Overview
+  // Single-fetch that populates all overview-derived slices at once
+  fetchAllOverviewData: (params?: { period?: string; timezone?: string }) => Promise<void>
+
+  // Individual fetchers (kept for targeted refresh)
   fetchDashboardOverview: () => Promise<void>
   fetchKeyMetrics: () => Promise<void>
   fetchSystemHealth: () => Promise<void>
@@ -124,6 +274,71 @@ export const useStatisticsStore = create<StatisticsStore>()(
 
 
       // Actions
+
+      // Single-fetch: call /admin/dashboard/overview ONCE and populate all slices
+      fetchAllOverviewData: async (params?: { period?: string; timezone?: string }) => {
+        const state = get()
+        if (state.isLoadingOverview || state.isLoadingKeyMetrics) return
+
+        set({
+          isLoadingOverview: true,
+          isLoadingKeyMetrics: true,
+          isLoadingUserStats: true,
+          isLoadingProductStats: true,
+          isLoadingActivityStats: true,
+          isLoadingUserGrowth: true,
+          isLoadingProductGrowth: true,
+          error: null
+        })
+
+        try {
+          const rawResponse = await StatisticsService.getRawOverview(params)
+          const {
+            dashboardOverview,
+            keyMetrics,
+            userStatistics,
+            productStatistics,
+            activityStatistics,
+            userGrowthData,
+            productGrowthData
+          } = transformOverviewResponse(rawResponse)
+
+          const now = Date.now()
+          set({
+            dashboardOverview,
+            keyMetrics,
+            userStatistics,
+            productStatistics,
+            activityStatistics,
+            userGrowth: { ...get().userGrowth, daily: userGrowthData },
+            productGrowth: { ...get().productGrowth, daily: productGrowthData },
+            lastUpdated: {
+              overview: now,
+              keyMetrics: now,
+              userStats: now,
+              productStats: now,
+              activityStats: now,
+              userGrowth: { ...get().lastUpdated.userGrowth, daily: now },
+              productGrowth: { ...get().lastUpdated.productGrowth, daily: now },
+            }
+          })
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to fetch dashboard data'
+          set({ error: message })
+          console.error('Failed to fetch dashboard data:', error)
+        } finally {
+          set({
+            isLoadingOverview: false,
+            isLoadingKeyMetrics: false,
+            isLoadingUserStats: false,
+            isLoadingProductStats: false,
+            isLoadingActivityStats: false,
+            isLoadingUserGrowth: false,
+            isLoadingProductGrowth: false,
+          })
+        }
+      },
+
       fetchDashboardOverview: async () => {
         if (get().isLoadingOverview) return
 
@@ -418,12 +633,8 @@ export const useStatisticsStore = create<StatisticsStore>()(
       refreshAll: async () => {
         const state = get()
         await Promise.allSettled([
-          state.fetchDashboardOverview(),
-          state.fetchKeyMetrics(),
+          state.fetchAllOverviewData(),
           state.fetchSystemHealth(),
-          state.fetchUserStatistics(),
-          state.fetchProductStatistics(),
-          state.fetchActivityStatistics(),
         ])
       },
 
