@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthStore>()(
             }
 
             // Calculate token expiry time
-            const tokenExpiry = Date.now() + (finalExpiresIn ? finalExpiresIn * 1000 : 3600000) // Default 1 hour
+            const tokenExpiry = Date.now() + (finalExpiresIn ? finalExpiresIn * 1000 : 604800000) // Default 1 week
 
             // Store tokens securely
             apiClient.setToken(finalAccessToken, tokenExpiry)
@@ -403,7 +403,7 @@ export const useAuthStore = create<AuthStore>()(
             const expiresIn = tokens.expires_in || tokens.expiresIn
 
             // Calculate new token expiry
-            const tokenExpiry = Date.now() + (expiresIn ? expiresIn * 1000 : 3600000)
+            const tokenExpiry = Date.now() + (expiresIn ? expiresIn * 1000 : 604800000)
 
             // Update tokens
             apiClient.setToken(accessToken, tokenExpiry)

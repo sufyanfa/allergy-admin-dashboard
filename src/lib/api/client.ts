@@ -94,7 +94,7 @@ class ApiClient {
       }
 
       // Also set as cookie for server-side middleware validation
-      const expiryDate = expiry ? new Date(expiry) : new Date(Date.now() + 3600000)
+      const expiryDate = expiry ? new Date(expiry) : new Date(Date.now() + 604800000)
       document.cookie = `admin_token=${token}; path=/; expires=${expiryDate.toUTCString()}; secure; samesite=strict`
     }
   }
