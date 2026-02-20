@@ -83,7 +83,7 @@ class StatisticsServiceClass {
       return {
         users: {
           total: response.overview?.totalUsers?.count || 0,
-          active: response.overview?.totalUsers?.count || 0,
+          active: 0, // Active users not exposed by the overview API
           newToday: 0,
           growthRate: response.overview?.totalUsers?.growthPercentage || 0
         },
@@ -123,7 +123,7 @@ class StatisticsServiceClass {
       // Transform new API response to match existing interface
       return {
         totalUsers: response.overview?.totalUsers?.count || 0,
-        activeUsers: response.overview?.totalUsers?.count || 0,
+        activeUsers: 0, // Active users not exposed by the overview API
         totalProducts: response.overview?.totalProducts?.count || 0,
         verifiedProducts: Math.round((response.overview?.totalProducts?.count || 0) * (response.realtime?.verifiedProductsPercentage || 0) / 100),
         totalSearches: response.overview?.totalSearches?.count || 0,
@@ -159,9 +159,9 @@ class StatisticsServiceClass {
         // Component expected properties
         memoryUsage: memoryPercentage,
         cpuUsage: 0, // Not provided by API, using default
-        cacheHitRate: 95.5, // Mock value since not in API
+        cacheHitRate: 0, // Not provided by API
         avgResponseTime: response.responseTime || 0,
-        errorRate: 0.01, // Mock value since not in API
+        errorRate: 0, // Not provided by API
         // Detailed breakdown
         database: {
           status: response.checks?.database?.status === 'healthy' ? 'healthy' : 'degraded',

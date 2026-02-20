@@ -132,9 +132,9 @@ export function ContributionDetailModal({
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div>
-              <DialogTitle>Contribution Details</DialogTitle>
+              <DialogTitle>{t('contributionDetails')}</DialogTitle>
               <DialogDescription>
-                Review and manage this contribution
+                {t('reviewManage')}
               </DialogDescription>
             </div>
             {contribution && getStatusBadge(contribution.status)}
@@ -145,12 +145,12 @@ export function ContributionDetailModal({
           <div className="flex items-center justify-center py-12">
             <div className="text-center space-y-4">
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-              <p className="text-sm text-muted-foreground">Loading contribution details...</p>
+              <p className="text-sm text-muted-foreground">{t('loadingDetails')}</p>
             </div>
           </div>
         ) : !contribution ? (
           <div className="flex items-center justify-center py-12">
-            <p className="text-sm text-muted-foreground">No contribution data available</p>
+            <p className="text-sm text-muted-foreground">{t('noData')}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -159,12 +159,12 @@ export function ContributionDetailModal({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
-                  <span>Contributor</span>
+                  <span>{t('contributor')}</span>
                 </div>
                 <div className="font-medium">
-                  {contribution.user?.name || 'Unknown'}
+                  {contribution.user?.name || tCommon('unknown')}
                   <span className="text-sm text-muted-foreground ml-2">
-                    @{contribution.user?.username || 'unknown'}
+                    @{contribution.user?.username || tCommon('unknown')}
                   </span>
                 </div>
               </div>
@@ -172,7 +172,7 @@ export function ContributionDetailModal({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>Submitted</span>
+                  <span>{tCommon('submitted')}</span>
                 </div>
                 <div className="font-medium">
                   {format(new Date(contribution.createdAt), 'PPP')}
@@ -182,7 +182,7 @@ export function ContributionDetailModal({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileText className="h-4 w-4" />
-                  <span>Type</span>
+                  <span>{tCommon('type')}</span>
                 </div>
                 <div className="font-medium capitalize">
                   {contribution.contributionType.replace(/_/g, ' ')}
@@ -193,7 +193,7 @@ export function ContributionDetailModal({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Package className="h-4 w-4" />
-                    <span>AI Confidence</span>
+                    <span>{t('aiConfidence')}</span>
                   </div>
                   <div className={cn('font-bold text-lg', getConfidenceColor(contribution.contributionData.aiConfidence))}>
                     {contribution.contributionData.aiConfidence}%
@@ -208,7 +208,7 @@ export function ContributionDetailModal({
             {contribution.contributionType === 'new_product' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Product Information</h3>
+                  <h3 className="font-semibold">{t('productInfo')}</h3>
                   {contribution.status === 'pending' && (
                     <Button
                       variant="outline"
@@ -217,84 +217,84 @@ export function ContributionDetailModal({
                       type="button"
                     >
                       <Edit2 className="h-4 w-4 mr-2" />
-                      {isEditing ? 'Cancel Edit' : 'Edit'}
+                      {isEditing ? tCommon('cancel') : tCommon('edit')}
                     </Button>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Product Name (AR):</Label>
+                    <Label className="text-muted-foreground">{t('productNameAr')}:</Label>
                     {isEditing ? (
                       <Input
                         value={getFieldValue('productNameAr', contribution.contributionData?.productNameAr || '')}
                         onChange={(e) => handleEditChange('productNameAr', e.target.value)}
                         className="mt-1"
-                        placeholder="اسم المنتج بالعربية"
+                        placeholder={t('productNameAr')}
                       />
                     ) : (
                       <p className="font-medium mt-1">{contribution.contributionData?.productNameAr || 'N/A'}</p>
                     )}
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Product Name (EN):</Label>
+                    <Label className="text-muted-foreground">{t('productNameEn')}:</Label>
                     {isEditing ? (
                       <Input
                         value={getFieldValue('productNameEn', contribution.contributionData?.productNameEn || '')}
                         onChange={(e) => handleEditChange('productNameEn', e.target.value)}
                         className="mt-1"
-                        placeholder="Product Name in English"
+                        placeholder={t('productNameEn')}
                       />
                     ) : (
                       <p className="font-medium mt-1">{contribution.contributionData?.productNameEn || 'N/A'}</p>
                     )}
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Brand (AR):</Label>
+                    <Label className="text-muted-foreground">{t('brandAr')}:</Label>
                     {isEditing ? (
                       <Input
                         value={getFieldValue('brandAr', contribution.contributionData?.brandAr || '')}
                         onChange={(e) => handleEditChange('brandAr', e.target.value)}
                         className="mt-1"
-                        placeholder="العلامة التجارية بالعربية"
+                        placeholder={t('brandAr')}
                       />
                     ) : (
                       <p className="font-medium mt-1">{contribution.contributionData?.brandAr || 'N/A'}</p>
                     )}
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Brand (EN):</Label>
+                    <Label className="text-muted-foreground">{t('brandEn')}:</Label>
                     {isEditing ? (
                       <Input
                         value={getFieldValue('brandEn', contribution.contributionData?.brandEn || '')}
                         onChange={(e) => handleEditChange('brandEn', e.target.value)}
                         className="mt-1"
-                        placeholder="Brand in English"
+                        placeholder={t('brandEn')}
                       />
                     ) : (
                       <p className="font-medium mt-1">{contribution.contributionData?.brandEn || 'N/A'}</p>
                     )}
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Barcode:</Label>
+                    <Label className="text-muted-foreground">{t('barcode')}:</Label>
                     {isEditing ? (
                       <Input
                         value={getFieldValue('barcode', contribution.contributionData?.barcode || '')}
                         onChange={(e) => handleEditChange('barcode', e.target.value)}
                         className="mt-1"
-                        placeholder="Barcode"
+                        placeholder={t('barcode')}
                       />
                     ) : (
                       <p className="font-medium mt-1">{contribution.contributionData?.barcode || 'N/A'}</p>
                     )}
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Category:</Label>
+                    <Label className="text-muted-foreground">{t('category')}:</Label>
                     {isEditing ? (
                       <Input
                         value={getFieldValue('category', contribution.contributionData?.category || '')}
                         onChange={(e) => handleEditChange('category', e.target.value)}
                         className="mt-1"
-                        placeholder="Category"
+                        placeholder={t('category')}
                       />
                     ) : (
                       <p className="font-medium mt-1">{contribution.contributionData?.category || 'N/A'}</p>
@@ -366,7 +366,7 @@ export function ContributionDetailModal({
             {/* Existing Product */}
             {contribution.product && (
               <div className="space-y-2">
-                <h3 className="font-semibold">Related Product</h3>
+                <h3 className="font-semibold">{t('relatedProduct')}</h3>
                 <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/50">
                   <Package className="h-4 w-4" />
                   <div className="flex-1">
@@ -385,17 +385,17 @@ export function ContributionDetailModal({
             {/* Ingredients */}
             {(contribution.contributionData?.extractedIngredientsAr || contribution.contributionData?.extractedIngredientsEn) && (
               <div className="space-y-4">
-                <h3 className="font-semibold">Extracted Ingredients</h3>
+                <h3 className="font-semibold">{t('extractedIngredients')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(contribution.contributionData?.extractedIngredientsAr || isEditing) && (
                     <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">Arabic:</Label>
+                      <Label className="text-sm text-muted-foreground">{t('arabic')}:</Label>
                       {isEditing ? (
                         <Textarea
                           value={getFieldValue('extractedIngredientsAr', contribution.contributionData?.extractedIngredientsAr || '')}
                           onChange={(e) => handleEditChange('extractedIngredientsAr', e.target.value)}
                           className="font-arabic min-h-[100px]"
-                          placeholder="المكونات بالعربية"
+                          placeholder={t('ingredientsAr')}
                         />
                       ) : (
                         <p className="text-sm p-3 rounded-lg border bg-muted/50 font-arabic">
@@ -406,13 +406,13 @@ export function ContributionDetailModal({
                   )}
                   {(contribution.contributionData?.extractedIngredientsEn || isEditing) && (
                     <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">English:</Label>
+                      <Label className="text-sm text-muted-foreground">{t('english')}:</Label>
                       {isEditing ? (
                         <Textarea
                           value={getFieldValue('extractedIngredientsEn', contribution.contributionData?.extractedIngredientsEn || '')}
                           onChange={(e) => handleEditChange('extractedIngredientsEn', e.target.value)}
                           className="min-h-[100px]"
-                          placeholder="Ingredients in English"
+                          placeholder={t('ingredientsEn')}
                         />
                       ) : (
                         <p className="text-sm p-3 rounded-lg border bg-muted/50">
@@ -428,15 +428,15 @@ export function ContributionDetailModal({
             {/* Images */}
             {(contribution.contributionData?.frontImageUrl || contribution.contributionData?.ingredientsImageUrl) && (
               <div className="space-y-4">
-                <h3 className="font-semibold">Product Images</h3>
+                <h3 className="font-semibold">{t('productImages')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {contribution.contributionData?.frontImageUrl && (
                     <div className="space-y-2">
-                      <span className="text-sm text-muted-foreground">Front Image:</span>
+                      <span className="text-sm text-muted-foreground">{t('frontImage')}:</span>
                       <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
                         <Image
                           src={contribution.contributionData.frontImageUrl}
-                          alt="Front"
+                          alt={t('frontImage')}
                           fill
                           className="object-contain"
                           unoptimized
@@ -446,11 +446,11 @@ export function ContributionDetailModal({
                   )}
                   {contribution.contributionData?.ingredientsImageUrl && (
                     <div className="space-y-2">
-                      <span className="text-sm text-muted-foreground">Ingredients Image:</span>
+                      <span className="text-sm text-muted-foreground">{t('ingredientsImage')}:</span>
                       <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
                         <Image
                           src={contribution.contributionData.ingredientsImageUrl}
-                          alt="Ingredients"
+                          alt={t('ingredientsImage')}
                           fill
                           className="object-contain"
                           unoptimized
@@ -465,13 +465,13 @@ export function ContributionDetailModal({
             {/* Review Info */}
             {contribution.reviewedAt && (
               <div className="space-y-2 p-4 rounded-lg border bg-muted/50">
-                <h3 className="font-semibold text-sm">Review Information</h3>
+                <h3 className="font-semibold text-sm">{t('reviewInfo')}</h3>
                 <div className="text-sm text-muted-foreground">
-                  Reviewed on {format(new Date(contribution.reviewedAt), 'PPP')}
+                  {t('reviewedOn')} {format(new Date(contribution.reviewedAt), 'PPP')}
                 </div>
                 {contribution.notes && (
                   <div className="mt-2">
-                    <span className="text-sm font-medium">Notes:</span>
+                    <span className="text-sm font-medium">{t('notes')}:</span>
                     <p className="text-sm mt-1">{contribution.notes}</p>
                   </div>
                 )}
@@ -481,10 +481,10 @@ export function ContributionDetailModal({
             {/* Admin Notes (for pending contributions) */}
             {contribution.status === 'pending' && (
               <div className="space-y-2">
-                <Label htmlFor="notes">Admin Notes (optional)</Label>
+                <Label htmlFor="notes">{t('adminNotes')}</Label>
                 <Textarea
                   id="notes"
-                  placeholder="Add notes about this review decision..."
+                  placeholder={t('adminNotesPlaceholder')}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
@@ -507,7 +507,7 @@ export function ContributionDetailModal({
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
-                    <>Save Changes</>
+                    <>{tCommon('saveChanges')}</>
                   )}
                 </Button>
               )}
@@ -518,7 +518,7 @@ export function ContributionDetailModal({
                   disabled={isSubmitting}
                   className="flex-1"
                 >
-                  Cancel
+                  {tCommon('cancel')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -531,7 +531,7 @@ export function ContributionDetailModal({
                   ) : (
                     <XCircle className="h-4 w-4 mr-2" />
                   )}
-                  Reject
+                  {tCommon('reject')}
                 </Button>
                 <Button
                   onClick={handleApprove}
@@ -543,12 +543,12 @@ export function ContributionDetailModal({
                   ) : (
                     <CheckCircle className="h-4 w-4 mr-2" />
                   )}
-                  Approve
+                  {tCommon('approve')}
                 </Button>
               </div>
             </>
           ) : !isLoadingData ? (
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>{tCommon('close')}</Button>
           ) : null}
         </DialogFooter>
       </DialogContent>

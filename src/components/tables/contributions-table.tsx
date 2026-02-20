@@ -10,18 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { MoreHorizontal, Eye, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Eye, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { useTranslations } from '@/lib/hooks/use-translations'
@@ -65,16 +57,22 @@ export function ContributionsTable({
       rejected: { variant: 'destructive', label: t('rejected') }
     }
 
-    const { variant, label } = variants[status] || variants.pending
-    return <Badge variant={variant}>{label}</Badge>
+    const { label } = variants[status] || variants.pending;
+    const badgeClass = {
+      pending: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+      approved: 'bg-green-50 text-green-700 border border-green-200',
+      rejected: 'bg-red-50 text-red-700 border border-red-200'
+    }[status] || 'bg-gray-50 text-gray-600 border border-gray-200';
+
+    return <Badge className={badgeClass}>{label}</Badge>
   }
 
   const getTypeBadge = (type: ContributionType) => {
     const types: Record<ContributionType, { color: string, label: string }> = {
-      new_product: { color: 'bg-blue-100 text-blue-800', label: t('newProduct') },
-      edit_ingredients: { color: 'bg-purple-100 text-purple-800', label: t('editIngredients') },
-      add_image: { color: 'bg-green-100 text-green-800', label: t('addImage') },
-      report_error: { color: 'bg-orange-100 text-orange-800', label: t('reportError') }
+      new_product: { color: 'bg-blue-50 text-blue-700 border border-blue-200', label: t('newProduct') },
+      edit_ingredients: { color: 'bg-purple-50 text-purple-700 border border-purple-200', label: t('editIngredients') },
+      add_image: { color: 'bg-green-50 text-green-700 border border-green-200', label: t('addImage') },
+      report_error: { color: 'bg-orange-50 text-orange-700 border border-orange-200', label: t('reportError') }
     }
 
     const { color, label } = types[type] || types.new_product
@@ -131,13 +129,13 @@ export function ContributionsTable({
                   />
                 </TableHead>
               )}
-              <TableHead>{t('type')}</TableHead>
-              <TableHead>{tCommon('nav.users')}</TableHead>
-              <TableHead>{t('productInfo')}</TableHead>
-              <TableHead>{t('aiConfidence')}</TableHead>
-              <TableHead>{t('pending')}</TableHead>
-              <TableHead>{tProducts('created')}</TableHead>
-              <TableHead className="w-12"></TableHead>
+              <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('type')}</TableHead>
+              <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('contributor')}</TableHead>
+              <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('productInfo')}</TableHead>
+              <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3 hidden sm:table-cell">{t('aiConfidence')}</TableHead>
+              <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{tCommon('status')}</TableHead>
+              <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3 hidden md:table-cell">{tProducts('created')}</TableHead>
+              <TableHead className="w-36 text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{tCommon('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -154,7 +152,7 @@ export function ContributionsTable({
               ))
             ) : (
               contributions.map((contribution) => (
-                <TableRow key={contribution.id}>
+                <TableRow key={contribution.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 border-b transition-colors">
                   {onToggleSelection && (
                     <TableCell>
                       <Checkbox
@@ -189,7 +187,7 @@ export function ContributionsTable({
                       <span className="text-muted-foreground">{t('noProduct')}</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {contribution.contributionData?.aiConfidence ? (
                       <span className={cn('font-semibold', getConfidenceColor(contribution.contributionData.aiConfidence))}>
                         {contribution.contributionData.aiConfidence}%
@@ -199,59 +197,59 @@ export function ContributionsTable({
                     )}
                   </TableCell>
                   <TableCell>{getStatusBadge(contribution.status)}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <span className="text-sm text-muted-foreground">
                       {format(new Date(contribution.createdAt), 'MMM dd, yyyy')}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
+                    <div className="flex items-center gap-1.5">
+                      {onView && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-2"
+                          onClick={() => onView(contribution)}
+                        >
+                          <Eye className="h-3.5 w-3.5 mr-1" />
+                          {tCommon('view')}
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {onView && (
-                          <DropdownMenuItem onClick={() => onView(contribution)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            {tCommon('view')} {tCommon('details')}
-                          </DropdownMenuItem>
-                        )}
-                        {contribution.status === 'pending' && (
-                          <>
-                            {onApprove && (
-                              <DropdownMenuItem
-                                onClick={async () => handleAction(async () => onApprove(contribution), contribution.id)}
-                                disabled={loadingId === contribution.id}
-                              >
-                                {loadingId === contribution.id ? (
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                )}
-                                {t('approve')}
-                              </DropdownMenuItem>
-                            )}
-                            {onReject && (
-                              <DropdownMenuItem
-                                onClick={async () => handleAction(async () => onReject(contribution), contribution.id)}
-                                disabled={loadingId === contribution.id}
-                              >
-                                {loadingId === contribution.id ? (
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                )}
-                                {t('reject')}
-                              </DropdownMenuItem>
-                            )}
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      )}
+                      {contribution.status === 'pending' && (
+                        <>
+                          {onApprove && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
+                              onClick={async () => handleAction(async () => onApprove(contribution), contribution.id)}
+                              disabled={loadingId === contribution.id}
+                            >
+                              {loadingId === contribution.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          )}
+                          {onReject && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                              onClick={async () => handleAction(async () => onReject(contribution), contribution.id)}
+                              disabled={loadingId === contribution.id}
+                            >
+                              {loadingId === contribution.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <XCircle className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -22,7 +22,7 @@ import { User } from '@/types'
 import { toast } from 'sonner'
 import { useUsersStore } from '@/lib/stores/users-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { useTranslations } from '@/lib/hooks/use-translations'
+
 
 interface UserRoleSelectorProps {
   user: User
@@ -38,7 +38,6 @@ const ROLES: Array<{ value: User['role']; label: string; description: string }> 
 ]
 
 export function UserRoleSelector({ user, disabled = false }: UserRoleSelectorProps) {
-  const tMessages = useTranslations('messages')
   const { user: currentUser } = useAuthStore()
   const { updateUserRole } = useUsersStore()
   const [selectedRole, setSelectedRole] = useState<User['role'] | null>(null)
@@ -46,7 +45,6 @@ export function UserRoleSelector({ user, disabled = false }: UserRoleSelectorPro
   const [isUpdating, setIsUpdating] = useState(false)
 
   const isCurrentUser = currentUser?.id === user.id
-  const isAdminChange = selectedRole === 'admin' || user.role === 'admin'
 
   const handleRoleChange = (newRole: string) => {
     const role = newRole as User['role']
@@ -79,7 +77,7 @@ export function UserRoleSelector({ user, disabled = false }: UserRoleSelectorPro
       toast.success(
         `User role updated from ${result.previousRole} to ${result.currentRole}`,
         {
-          description: `${user.name || user.email || 'User'}'s role has been successfully updated.`
+          description: `${user.fullName || user.username || user.email || 'User'}'s role has been successfully updated.`
         }
       )
 
@@ -155,7 +153,7 @@ export function UserRoleSelector({ user, disabled = false }: UserRoleSelectorPro
               {selectedRole === 'admin' ? (
                 <>
                   You are about to grant <strong>admin privileges</strong> to{' '}
-                  <strong>{user.name || user.email || 'this user'}</strong>.
+                  <strong>{user.fullName || user.username || user.email || 'this user'}</strong>.
                   <br />
                   <br />
                   Admins have full access to the system including user management,
@@ -167,7 +165,7 @@ export function UserRoleSelector({ user, disabled = false }: UserRoleSelectorPro
               ) : (
                 <>
                   You are about to remove <strong>admin privileges</strong> from{' '}
-                  <strong>{user.name || user.email || 'this user'}</strong> and
+                  <strong>{user.fullName || user.username || user.email || 'this user'}</strong> and
                   change their role to <strong>{selectedRole}</strong>.
                   <br />
                   <br />

@@ -1,6 +1,5 @@
 import apiClient from './client'
 import {
-    ListsOverviewResponse,
     ListResponse,
     ListWithProductsResponse,
     ListMembersResponse,

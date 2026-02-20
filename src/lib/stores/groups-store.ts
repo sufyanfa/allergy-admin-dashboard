@@ -21,7 +21,7 @@ const initialFilters: GroupsFilters = {
     page: 1,
 }
 
-export const useGroupsStore = create<GroupsState>((set, get) => ({
+export const useGroupsStore = create<GroupsState>((set) => ({
     // Initial State
     groups: [],
     isLoading: false,

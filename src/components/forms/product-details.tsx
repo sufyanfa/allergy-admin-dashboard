@@ -111,6 +111,7 @@ export function ProductDetails({ product, open, onClose, isLoading = false }: Pr
               <CardContent className="pt-6">
                 <div className="flex items-start space-x-4">
                   {product.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={product.imageUrl}
                       alt={product.nameAr}
@@ -329,8 +330,8 @@ export function ProductDetails({ product, open, onClose, isLoading = false }: Pr
                         <div
                           key={ingredient.id}
                           className={`p-3 rounded-lg border ${ingredient.isAllergen
-                              ? 'bg-red-50 border-red-200'
-                              : 'bg-muted/50'
+                            ? 'bg-red-50 border-red-200'
+                            : 'bg-muted/50'
                             }`}
                         >
                           <div className="flex items-center justify-between">

@@ -14,11 +14,8 @@ import {
     Search,
     Filter,
     Plus,
-    List,
     Users,
     Share2,
-    Lock,
-    Globe
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslations } from '@/lib/hooks/use-translations'
@@ -49,8 +46,8 @@ export function ListsOverview({ className }: ListsOverviewProps) {
     const [showForm, setShowForm] = useState(false)
     const [selectedListId, setSelectedListId] = useState<string | undefined>()
     const [showDetailModal, setShowDetailModal] = useState(false)
-    const [showMembersDialog, setShowMembersDialog] = useState(false)
-    const [showSharingDialog, setShowSharingDialog] = useState(false)
+    const [, setShowMembersDialog] = useState(false)
+    const [, setShowSharingDialog] = useState(false)
     const [showFilters, setShowFilters] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
 

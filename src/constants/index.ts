@@ -120,6 +120,12 @@ export const NAVIGATION_ITEMS = [
     icon: 'AlertTriangle',
   },
   {
+    title: 'Trust',
+    translationKey: 'trust',
+    href: '/trust',
+    icon: 'Shield',
+  },
+  {
     title: 'Groups',
     translationKey: 'groups',
     href: '/groups',
@@ -130,6 +136,12 @@ export const NAVIGATION_ITEMS = [
     translationKey: 'contributions',
     href: '/contributions',
     icon: 'GitPullRequest',
+  },
+  {
+    title: 'Gamification',
+    translationKey: 'gamification',
+    href: '/gamification',
+    icon: 'Trophy',
   },
   {
     title: 'Analytics',

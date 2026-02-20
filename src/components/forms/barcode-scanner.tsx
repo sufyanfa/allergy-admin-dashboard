@@ -80,6 +80,7 @@ export function BarcodeScanner({ open, onClose, onScan }: BarcodeScannerProps) {
     } finally {
       setIsSearching(false)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchProductByBarcode, onScan, onClose, videoRef])
 
   // Initialize barcode scanner hook

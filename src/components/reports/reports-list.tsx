@@ -51,6 +51,7 @@ export function ReportsList() {
 
     useEffect(() => {
         fetchReports()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const handleDismiss = async (reportId: string) => {
@@ -68,7 +69,7 @@ export function ReportsList() {
                     return aOrder - bOrder
                 })
             )
-        } catch (error) {
+        } catch {
             toast.error(tReports('failedToDismiss'))
         }
     }
@@ -86,7 +87,7 @@ export function ReportsList() {
             }
             toast.success(tReports('contentDeleted'))
             setReports(reports.filter(r => r.id !== reportId))
-        } catch (error) {
+        } catch {
             toast.error(tReports('failedToDelete'))
         }
     }

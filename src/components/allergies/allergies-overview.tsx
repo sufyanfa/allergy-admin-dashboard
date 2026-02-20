@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RefreshCw, Download, Search, Filter, Plus, AlertTriangle } from 'lucide-react'
+import { AllergiesTable } from '@/components/tables/allergies-table'
 import { AllergyForm } from '@/components/forms/allergy-form'
 import { Allergy } from '@/types'
 import { toast } from 'sonner'
@@ -29,7 +30,7 @@ interface AllergiesOverviewProps {
 export function AllergiesOverview({ className }: AllergiesOverviewProps) {
   const t = useTranslations('allergies')
   const tCommon = useTranslations('common')
-  const tMessages = useTranslations('messages')
+
 
   const {
     allergies,
@@ -177,14 +178,7 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
     }
   ] : null
 
-  const getSeverityBadge = (severity: string): "default" | "destructive" | "outline" | "secondary" => {
-    const variants = {
-      mild: 'default' as const,
-      moderate: 'secondary' as const,
-      severe: 'destructive' as const
-    }
-    return variants[severity as keyof typeof variants] || 'default'
-  }
+
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -412,52 +406,10 @@ export function AllergiesOverview({ className }: AllergiesOverviewProps) {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {allergies.map((allergy) => (
-                <div
-                  key={allergy.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{allergy.nameAr}</h3>
-                      {allergy.nameEn && (
-                        <span className="text-sm text-muted-foreground">({allergy.nameEn})</span>
-                      )}
-                      <Badge variant={getSeverityBadge(allergy.severity)}>
-                        {allergy.severity}
-                      </Badge>
-                      {allergy.isActive && (
-                        <Badge variant="outline">{tCommon("active")}</Badge>
-                      )}
-                    </div>
-                    {allergy.descriptionAr && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {allergy.descriptionAr}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">
-                      {allergy.userCount || 0} {tCommon("users").toLowerCase()}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditAllergy(allergy)}
-                    >
-                      {tCommon('edit')}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-
-              {allergies.length === 0 && !isLoading && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">{t("noAllergiesFound")}</p>
-                </div>
-              )}
-            </div>
+            <AllergiesTable
+              allergies={allergies}
+              onEditAllergy={handleEditAllergy}
+            />
           )}
         </CardContent>
       </Card>

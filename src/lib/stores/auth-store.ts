@@ -5,7 +5,6 @@ import apiClient from '@/lib/api/client'
 
 // Development-only logger - silent in production
 const isDev = process.env.NODE_ENV === 'development'
-const devLog = isDev ? (...args: unknown[]) => console.log('[Auth]', ...args) : () => {}
 const devWarn = isDev ? (...args: unknown[]) => console.warn('[Auth]', ...args) : () => {}
 const devError = isDev ? (...args: unknown[]) => console.error('[Auth]', ...args) : () => {}
 
@@ -104,7 +103,7 @@ export const useAuthStore = create<AuthStore>()(
                   role: userRole,
                   permissions: extractedPermissions
                 }
-              } catch (jwtError) {
+              } catch {
                 devWarn('Could not parse JWT token')
               }
             }
@@ -161,7 +160,7 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           await apiClient.post('/auth/logout')
-        } catch (error) {
+        } catch {
           devError('Logout failed')
         } finally {
           // Clear local state regardless of API response
@@ -208,7 +207,7 @@ export const useAuthStore = create<AuthStore>()(
                 if (jwtPayload.user_role) {
                   user = { ...user, role: jwtPayload.user_role }
                 }
-              } catch (jwtError) {
+              } catch {
                 devWarn('Could not parse JWT token')
               }
             }
@@ -236,21 +235,31 @@ export const useAuthStore = create<AuthStore>()(
             throw new Error(response.message || 'Failed to get profile')
           }
         } catch (error: unknown) {
+          const status = (error as any)?.status
           const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error)?.message || 'Failed to get profile'
-          set({
-            error: message,
-            isLoading: false,
-            isAuthenticated: false,
-            user: null,
-            permissions: [],
-            tokenExpiry: null
-          })
 
-          // Clear tokens on profile fetch failure
-          apiClient.clearToken()
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('admin_refresh_token')
-            localStorage.removeItem('admin_token_expiry')
+          // Only clear auth state on genuine auth failures (401/403).
+          // Network errors (CSP blocks, server down) must NOT log the user out —
+          // they are transient and the tokens are still valid.
+          const isAuthError = status === 401 || status === 403
+
+          if (isAuthError) {
+            set({
+              error: message,
+              isLoading: false,
+              isAuthenticated: false,
+              user: null,
+              permissions: [],
+              tokenExpiry: null
+            })
+            apiClient.clearToken()
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('admin_refresh_token')
+              localStorage.removeItem('admin_token_expiry')
+            }
+          } else {
+            // Transient error — keep existing auth state, just stop loading
+            set({ error: message, isLoading: false })
           }
         }
       },
@@ -346,16 +355,47 @@ export const useAuthStore = create<AuthStore>()(
                 get().logout()
               }
             }
+          } else if (token && isAuthenticated) {
+            // Token present and already marked authenticated — restore it into
+            // the ApiClient in-memory state (lost on page reload) and keep going.
+            const storedExpiry = typeof window !== 'undefined'
+              ? localStorage.getItem('admin_token_expiry')
+              : null
+            const expiryTime = get().tokenExpiry || (storedExpiry ? parseInt(storedExpiry, 10) : undefined)
+            apiClient.setToken(token, expiryTime)
           } else if (!token && isAuthenticated) {
-            // State says authenticated but no token, clear state
-            set({
-              user: null,
-              permissions: [],
-              isAuthenticated: false,
-              tokenExpiry: null
-            })
+            // Access token is gone from localStorage (e.g. cleared by a previous
+            // session bug) but refresh token and zustand state are still valid.
+            // Try a silent refresh before logging the user out.
+            const refreshToken = typeof window !== 'undefined'
+              ? localStorage.getItem('admin_refresh_token')
+              : null
+
+            if (refreshToken) {
+              try {
+                await get().refreshTokens()
+                // Refresh succeeded — user data already in persisted zustand state.
+                // No need to re-fetch profile; the new token is now in localStorage.
+              } catch {
+                // Refresh also failed — session is truly gone
+                set({
+                  user: null,
+                  permissions: [],
+                  isAuthenticated: false,
+                  tokenExpiry: null
+                })
+              }
+            } else {
+              // No refresh token either — clear everything
+              set({
+                user: null,
+                permissions: [],
+                isAuthenticated: false,
+                tokenExpiry: null
+              })
+            }
           }
-        } catch (error) {
+        } catch {
           devError('Auth initialization failed')
           set({
             user: null,
@@ -385,19 +425,14 @@ export const useAuthStore = create<AuthStore>()(
             throw new Error('No refresh token available')
           }
 
-          const response = await fetch('/api/auth/refresh-token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken }),
+          // Use apiClient directly — backend requires snake_case { refresh_token }
+          const responseData = await apiClient.post<any>('/auth/refresh-token', {
+            refresh_token: refreshToken,
           })
-
-          const responseData = await response.json()
 
           if (responseData.success) {
             // Handle both old and new token response formats
-            const tokens = responseData.data.tokens || responseData.data
+            const tokens = responseData.data?.tokens || responseData.data
             const accessToken = tokens.access_token || tokens.accessToken
             const newRefreshToken = tokens.refresh_token || tokens.refreshToken
             const expiresIn = tokens.expires_in || tokens.expiresIn

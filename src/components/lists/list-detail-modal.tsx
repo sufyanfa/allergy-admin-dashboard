@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ProductList } from '@/types/lists'
+
 import {
     Dialog,
     DialogContent,
@@ -27,7 +27,6 @@ import {
 import { format } from 'date-fns'
 import { useTranslations } from '@/lib/hooks/use-translations'
 import { useListsStore } from '@/lib/stores/lists-store'
-import { cn } from '@/lib/utils'
 
 interface ListDetailModalProps {
     listId: string | null
@@ -38,7 +37,7 @@ interface ListDetailModalProps {
 export function ListDetailModal({ listId, open, onClose }: ListDetailModalProps) {
     const t = useTranslations('lists')
     const tCommon = useTranslations('common')
-    const { fetchListWithProducts, currentList, isLoading, removeProductFromList } = useListsStore()
+    const { fetchListWithProducts, currentList, removeProductFromList } = useListsStore()
     const [isLoadingData, setIsLoadingData] = useState(false)
     const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
 

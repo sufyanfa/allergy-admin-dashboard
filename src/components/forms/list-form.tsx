@@ -35,7 +35,7 @@ interface ListFormProps {
 export function ListForm({ open, onClose, listId }: ListFormProps) {
     const t = useTranslations('lists')
     const tCommon = useTranslations('common')
-    const { createList, updateList, fetchListById, lists, isLoading } = useListsStore()
+    const { createList, updateList, lists, isLoading } = useListsStore()
 
     const DEFAULT_COLORS = [
         { name: t('colorBlue'), value: '#3B82F6' },

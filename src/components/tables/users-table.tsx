@@ -32,36 +32,35 @@ interface UsersTableProps {
 }
 
 import { useTranslations } from '@/lib/hooks/use-translations'
-import { useLocale } from '@/lib/hooks/use-translations'
 
 export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }: UsersTableProps) {
   const t = useTranslations('users')
   const tCommon = useTranslations('common')
-  const locale = useLocale()
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border border-green-200'
       case 'inactive':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-600 border border-gray-200'
       case 'suspended':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-600 border border-gray-200'
     }
   }
 
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-50 text-purple-700 border border-purple-200'
       case 'premium':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 border border-blue-200'
       case 'user':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-600 border border-gray-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-600 border border-gray-200'
     }
   }
 
@@ -69,7 +68,13 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
     if (user.fullName) {
       return user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
     }
-    return user.username?.substring(0, 2).toUpperCase() || 'U'
+    if (user.username) {
+      return user.username.substring(0, 2).toUpperCase()
+    }
+    if (user.email) {
+      return user.email.substring(0, 2).toUpperCase()
+    }
+    return 'U'
   }
 
   if (loading) {
@@ -89,72 +94,72 @@ export function UsersTable({ users, loading, onEdit, onDelete, onUpdateStatus }:
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t('user')}</TableHead>
-            <TableHead>{t('contact')}</TableHead>
-            <TableHead>{t('role')}</TableHead>
-            <TableHead>{t('status')}</TableHead>
-            <TableHead>{t('joined')}</TableHead>
-            <TableHead className="text-right">{tCommon('actions')}</TableHead>
-          </TableRow>
+     <div className="rounded-md">
+       <Table>
+         <TableHeader>
+           <TableRow>
+             <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('user')}</TableHead>
+             <TableHead className="hidden md:table-cell text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('contact')}</TableHead>
+             <TableHead className="hidden md:table-cell text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('role')}</TableHead>
+             <TableHead className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('status')}</TableHead>
+             <TableHead className="hidden lg:table-cell text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{t('joined')}</TableHead>
+             <TableHead className="text-right text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider py-3">{tCommon('actions')}</TableHead>
+           </TableRow>
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
-            <TableRow>
+           <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                 {t('noUsersFound')}
               </TableCell>
             </TableRow>
           ) : (
-            users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatarUrl} alt={user.fullName || user.username} />
-                      <AvatarFallback className="text-xs">
-                        {getUserInitials(user)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">
-                        {user.fullName || user.username || t('unnamedUser')}
-                      </div>
-                      {user.username && user.fullName && (
-                        <div className="text-sm text-muted-foreground">
-                          @{user.username}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    {user.phone && (
-                      <div className="text-sm">{user.phone}</div>
-                    )}
-                    {user.email && (
-                      <div className="text-sm text-muted-foreground">{user.email}</div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getRoleColor(user.role)}>
-                    {user.role}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(user.status)}>
-                    {user.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {format(new Date(user.createdAt), 'MMM dd, yyyy')}
-                </TableCell>
-                <TableCell className="text-right">
+             users.map((user, index) => (
+                 <TableRow key={user.id} className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${index === users.length - 1 ? '' : 'border-b'}`}>
+                 <TableCell className="py-3">
+                   <div className="flex items-center space-x-3">
+                     <Avatar className="h-8 w-8">
+                       <AvatarImage src={user.avatarUrl} alt={user.fullName || user.username} />
+                       <AvatarFallback className="text-xs">
+                         {getUserInitials(user)}
+                       </AvatarFallback>
+                     </Avatar>
+                     <div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                         {user.fullName || user.username || user.email || t('unnamedUser')}
+                       </div>
+                       {user.username && user.fullName && (
+                        <div className="text-sm text-muted-foreground truncate">
+                           @{user.username}
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 </TableCell>
+                 <TableCell className="py-3 hidden md:table-cell">
+                   <div className="space-y-1">
+                     {user.phone && (
+                       <div className="text-sm">{user.phone}</div>
+                     )}
+                     {user.email && (
+                       <div className="text-sm text-muted-foreground">{user.email}</div>
+                     )}
+                   </div>
+                 </TableCell>
+                 <TableCell className="py-3 hidden md:table-cell">
+                   <Badge className={getRoleColor(user.role)}>
+                     {user.role}
+                   </Badge>
+                 </TableCell>
+                 <TableCell className="py-3">
+                   <Badge className={getStatusColor(user.status)}>
+                     {user.status}
+                   </Badge>
+                 </TableCell>
+                 <TableCell className="py-3 text-sm text-muted-foreground hidden lg:table-cell">
+                   {format(new Date(user.createdAt), 'MMM dd, yyyy')}
+                 </TableCell>
+                 <TableCell className="py-3 text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">

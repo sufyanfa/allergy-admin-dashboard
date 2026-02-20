@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert'
 import { Group } from '@/types/groups'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function GroupsOverview() {
     const t = useTranslations('groups')
@@ -62,11 +63,18 @@ export function GroupsOverview() {
                 </Alert>
             )}
 
-            <GroupsTable
-                groups={groups}
-                isLoading={isLoading}
-                onViewDetails={handleViewDetails}
-            />
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('title')} ({groups.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <GroupsTable
+                        groups={groups}
+                        isLoading={isLoading}
+                        onViewDetails={handleViewDetails}
+                    />
+                </CardContent>
+            </Card>
 
             <GroupDetailModal
                 group={selectedGroup}

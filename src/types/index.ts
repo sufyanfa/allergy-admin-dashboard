@@ -44,7 +44,6 @@ export interface UserPermissionContext {
 // User Types
 export interface User {
   id: string
-  name?: string // Alias for fullName for backward compatibility
   fullName?: string
   username?: string
   email?: string

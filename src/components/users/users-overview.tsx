@@ -27,10 +27,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { RefreshCw, Download, Search, Filter, Plus, TrendingUp } from 'lucide-react'
 import { UserForm } from '@/components/forms/user-form'
-import { UserRoleSelector } from '@/components/users/user-role-selector'
+
 import { User } from '@/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { UsersTable } from '@/components/tables/users-table';
 import { useTranslations } from '@/lib/hooks/use-translations'
 
 interface UsersOverviewProps {
@@ -41,6 +42,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
   const t = useTranslations('users')
   const tCommon = useTranslations('common')
   const tMessages = useTranslations('messages')
+
 
   const {
     users,
@@ -139,7 +141,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
   const handleExport = () => {
     const csvData = users.map(user => ({
       id: user.id,
-      name: user.name || user.fullName || user.username || '',
+      name: user.fullName || user.username || '',
       email: user.email || '',
       role: user.role,
       status: user.status,
@@ -169,26 +171,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
     color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index % 5]
   })) || null
 
-  const getStatusBadge = (status: string): "default" | "destructive" | "outline" | "secondary" => {
-    const variants = {
-      active: 'default' as const,
-      inactive: 'secondary' as const,
-      suspended: 'destructive' as const,
-      pending: 'outline' as const
-    }
-    return variants[status as keyof typeof variants] || 'default'
-  }
-
-  const getRoleBadge = (role: string): "default" | "destructive" | "outline" | "secondary" => {
-    const variants = {
-      admin: 'destructive' as const,
-      moderator: 'default' as const,
-      premium_user: 'secondary' as const,
-      user: 'outline' as const,
-      guest: 'outline' as const
-    }
-    return variants[role as keyof typeof variants] || 'outline'
-  }
+  
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -219,7 +202,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
       {/* Error Display */}
       {error && (
         <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
+          <CardContent className="p-0 flex-1">
             <div className="flex items-center justify-between">
               <p className="text-red-600">{error}</p>
               <Button onClick={clearError} variant="ghost" size="sm">
@@ -293,8 +276,8 @@ export function UsersOverview({ className }: UsersOverviewProps) {
           } : undefined}
         />
 
-        <Card>
-          <CardHeader>
+        <Card className="flex-1 flex flex-col h-full p-6">
+          <CardHeader className="p-0">
             <CardTitle className="flex items-center">
               <TrendingUp className="h-5 w-5 mr-2" />
               User Growth Insights
@@ -334,8 +317,8 @@ export function UsersOverview({ className }: UsersOverviewProps) {
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
+       <Card>
+         <CardContent className="p-6">
           <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
             <div className="flex-1">
               <div className="relative">
@@ -436,7 +419,7 @@ export function UsersOverview({ className }: UsersOverviewProps) {
       {/* Users List */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+           <div className="flex justify-between items-center mb-4">
             <div>
               <CardTitle>Users List</CardTitle>
               <p className="text-sm text-muted-foreground">
@@ -472,55 +455,17 @@ export function UsersOverview({ className }: UsersOverviewProps) {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {users.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-semibold">{user.name || user.fullName || user.username || 'Unknown User'}</h3>
-                      <Badge variant={getStatusBadge(user.status)}>
-                        {user.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {user.email || user.phone || 'No contact'} • {user.allergiesCount || 0} allergies
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Joined {new Date(user.createdAt).toLocaleDateString()}
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-muted-foreground">Role:</span>
-                      <UserRoleSelector user={user} disabled={loading} />
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditUser(user)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDeleteDialog({ open: true, userId: user.id })}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
+            <UsersTable
+  users={users}
+  loading={loading}
+  onEdit={handleEditUser}
+  onDelete={(userId) => setDeleteDialog({ open: true, userId })}
+  onUpdateStatus={(userId, status) => {
+    // Implement status update logic, e.g., call a store action
+    console.log(`Updating user ${userId} to status ${status}`)
+  }}
+/>
 
-              {users.length === 0 && !loading && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No users found</p>
-                </div>
-              )}
-            </div>
           )}
         </CardContent>
       </Card>

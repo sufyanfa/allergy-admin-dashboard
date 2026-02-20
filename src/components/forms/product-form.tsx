@@ -134,6 +134,7 @@ export function ProductForm({ open, onClose, product, categories }: ProductFormP
       })
       setIngredients([])
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, product])
 
   const handleAddIngredient = () => {

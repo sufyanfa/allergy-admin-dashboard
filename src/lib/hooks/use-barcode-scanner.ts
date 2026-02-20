@@ -39,6 +39,7 @@ export function useBarcodeScanner(
     return () => {
       stopScanning()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // List video devices

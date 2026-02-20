@@ -28,7 +28,7 @@ export function ProductFilters({
   onClear
 }: ProductFiltersProps) {
   const t = useTranslations('products')
-  const tCommon = useTranslations('common')
+
   const [localFilters, setLocalFilters] = useState<ProductSearchFilters>(filters)
 
   const handleFilterChange = (key: keyof ProductSearchFilters, value: string | boolean | undefined) => {

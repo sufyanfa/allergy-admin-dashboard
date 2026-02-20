@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useIntl, IntlProvider } from './intl-provider';
 
 /**
@@ -12,9 +13,9 @@ export function useLocale() {
 }
 
 export function useTranslations(namespace?: string) {
-    const { messages, locale } = useIntl();
+    const { messages } = useIntl();
 
-    return (key: string, params?: Record<string, string | number>) => {
+    return useCallback((key: string, params?: Record<string, string | number>) => {
         const path = namespace ? `${namespace}.${key}` : key;
         const keys = path.split('.');
         let value: any = messages;
@@ -30,7 +31,7 @@ export function useTranslations(namespace?: string) {
         }
 
         return value || key;
-    };
+    }, [messages, namespace]);
 }
 
 // Export the provider

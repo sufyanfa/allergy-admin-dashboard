@@ -10,10 +10,12 @@ import {
   Package,
   List,
   AlertTriangle,
+  Shield,
   GitPullRequest,
   TrendingUp,
   MessageSquare,
   Flag,
+  Trophy,
   LucideIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -25,10 +27,12 @@ const iconMap: Record<string, LucideIcon> = {
   Package,
   List,
   AlertTriangle,
+  Shield,
   GitPullRequest,
   TrendingUp,
   MessageSquare,
   Flag,
+  Trophy,
 }
 
 interface SidebarProps {

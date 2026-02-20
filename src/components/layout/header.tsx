@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { LogOut, User, Settings, Menu, BarChart3, Users, Package, AlertTriangle } from 'lucide-react'
+import {
+  LogOut, User, Settings, Menu, BarChart3, Users, Package, AlertTriangle,
+  List, Shield, GitPullRequest, TrendingUp, MessageSquare, Flag
+} from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { NAVIGATION_ITEMS } from '@/constants'
@@ -25,7 +28,13 @@ const iconMap = {
   BarChart3,
   Users,
   Package,
+  List,
   AlertTriangle,
+  Shield,
+  GitPullRequest,
+  TrendingUp,
+  MessageSquare,
+  Flag,
 }
 
 export function Header() {

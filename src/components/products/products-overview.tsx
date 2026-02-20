@@ -24,11 +24,12 @@ interface ProductsOverviewProps {
 export function ProductsOverview({ className }: ProductsOverviewProps) {
   const t = useTranslations('products')
   const tCommon = useTranslations('common')
-  const tMessages = useTranslations('messages')
+
 
   const {
     products,
     categories,
+    dataSources,
     searchResults,
     isLoading,
     isSearching,
@@ -140,8 +141,16 @@ export function ProductsOverview({ className }: ProductsOverviewProps) {
     }
   }) || null
 
-  // Data sources chart will be removed for now as data structure is not available
-  const dataSourcesChartData = null
+  const sourceColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316']
+  const totalSourceProducts = dataSources.reduce((sum, d) => sum + d.count, 0)
+  const dataSourcesChartData = dataSources.length > 0
+    ? dataSources.slice(0, 8).map((item, index) => ({
+        label: item.source || 'Unknown',
+        value: item.count,
+        percentage: totalSourceProducts > 0 ? (item.count / totalSourceProducts) * 100 : 0,
+        color: sourceColors[index % sourceColors.length],
+      }))
+    : null
 
   return (
     <div className={cn('space-y-6', className)}>

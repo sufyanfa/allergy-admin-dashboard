@@ -21,6 +21,7 @@ const devError = isDev ? (...args: unknown[]) => console.error('[Products]', ...
 interface ProductsState {
   products: Product[]
   categories: ProductCategory[]
+  dataSources: Array<{ source: string; count: number }>
   currentProduct: Product | null
   searchResults: ProductSearchResult | null
   overview: ProductsOverview | null
@@ -86,6 +87,7 @@ export const useProductsStore = create<ProductsStore>()(
       // State
       products: [],
       categories: [],
+      dataSources: [],
       currentProduct: null,
       searchResults: null,
       overview: null,
@@ -148,12 +150,13 @@ export const useProductsStore = create<ProductsStore>()(
           )
 
           if (response.success && response.data) {
-            const { overview, categories, products, pagination } = response.data
+            const { overview, categories, dataSources, products, pagination } = response.data as any
 
             set({
               overview,
               products,
-              categories: categories.map(c => ({
+              dataSources: (dataSources || []) as Array<{ source: string; count: number }>,
+              categories: categories.map((c: any) => ({
                 id: `cat-${c.category}`,
                 nameAr: c.category,
                 nameEn: c.category,

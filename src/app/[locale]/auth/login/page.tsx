@@ -9,18 +9,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, Loader2, Shield } from 'lucide-react'
 import { isValidEmail, sanitizeInput, loginRateLimiter, otpRateLimiter, setupCSP } from '@/lib/utils/security'
-import { useTranslations, useLocale } from '@/lib/hooks/use-translations'
+import { useTranslations } from '@/lib/hooks/use-translations'
 
 function LoginForm() {
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
-  const locale = useLocale()
-
-  const ERROR_MESSAGES: Record<string, string> = {
-    admin_required: t('accessDenied'),
-    unauthenticated: t('pleaseLogin'),
-    expired: t('sessionExpiredMessage'),
-  }
   const [step, setStep] = useState<'email' | 'otp'>('email')
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
@@ -34,15 +27,20 @@ function LoginForm() {
 
   // Check for error or expired parameters in URL
   useEffect(() => {
+    const errorMessages: Record<string, string> = {
+      admin_required: t('accessDenied'),
+      unauthenticated: t('pleaseLogin'),
+      expired: t('sessionExpiredMessage'),
+    }
     const errorParam = searchParams.get('error')
     const expiredParam = searchParams.get('expired')
 
-    if (errorParam && errorParam in ERROR_MESSAGES) {
-      setError(ERROR_MESSAGES[errorParam as keyof typeof ERROR_MESSAGES])
+    if (errorParam && errorParam in errorMessages) {
+      setError(errorMessages[errorParam])
     } else if (expiredParam === 'true') {
-      setError(ERROR_MESSAGES.expired)
+      setError(errorMessages.expired)
     }
-  }, [searchParams])
+  }, [searchParams, t])
 
   useEffect(() => {
     setupCSP()

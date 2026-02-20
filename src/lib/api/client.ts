@@ -2,7 +2,6 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 // Development-only logger - completely silent in production
 const isDev = process.env.NODE_ENV === 'development'
-const devLog = isDev ? (...args: unknown[]) => console.log('[API]', ...args) : () => {}
 const devError = isDev ? (...args: unknown[]) => console.error('[API]', ...args) : () => {}
 
 class ApiClient {
@@ -18,6 +17,10 @@ class ApiClient {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
+        // The backend's consolidatedSecurityMiddleware requires x-api-key on all
+        // non-auth endpoints. NEXT_PUBLIC_ variables are bundled into client JS,
+        // but this is an admin-only dashboard so the key being visible to admins
+        // is acceptable. The JWT Bearer token still enforces actual data access.
         'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
       },
       withCredentials: true, // Important for CORS with credentials
@@ -71,9 +74,13 @@ class ApiClient {
             return this.client(original)
           } catch (refreshError) {
             this.clearToken()
-            // Redirect to login
+            // Redirect to login (locale-aware)
             if (typeof window !== 'undefined') {
-              window.location.href = '/auth/login'
+              const locale = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('NEXT_LOCALE='))
+                ?.split('=')[1] || 'ar'
+              window.location.href = `/${locale}/auth/login`
             }
             return Promise.reject(refreshError)
           }
@@ -136,8 +143,30 @@ class ApiClient {
   }
 
   isTokenValid(): boolean {
-    if (!this.tokenExpiry) return false
+    if (!this.tokenExpiry) {
+      // Recover expiry from localStorage rather than assuming the token is invalid.
+      // Without this, a refreshed token (stored without expiry) causes clearToken()
+      // to be called on the very next request.
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('admin_token_expiry')
+        if (stored) {
+          this.tokenExpiry = parseInt(stored, 10)
+          return Date.now() < this.tokenExpiry
+        }
+      }
+      // No expiry info at all — let the server decide (it will 401 if truly expired)
+      return true
+    }
     return Date.now() < this.tokenExpiry
+  }
+
+  private extractJWTExpiry(token: string): number | null {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      return payload.exp ? payload.exp * 1000 : null
+    } catch {
+      return null
+    }
   }
 
   private async refreshToken() {
@@ -149,12 +178,29 @@ class ApiClient {
       throw new Error('No refresh token available')
     }
 
+    // Backend expects snake_case: { refresh_token }
     const response = await this.client.post('/auth/refresh-token', {
-      refreshToken,
+      refresh_token: refreshToken,
     })
 
-    const { accessToken } = response.data.data
-    this.setToken(accessToken)
+    // Backend returns snake_case keys; support both for safety
+    const data = response.data?.data || response.data
+    const accessToken = data?.access_token || data?.accessToken
+    const newRefreshToken = data?.refresh_token || data?.refreshToken
+
+    if (!accessToken) {
+      throw new Error('No access token in refresh response')
+    }
+
+    // Always persist an expiry so the next interceptor check doesn't
+    // hit the `this.token && !isTokenValid()` → clearToken() branch.
+    const expiryMs = this.extractJWTExpiry(accessToken) || (Date.now() + 3600000)
+    this.setToken(accessToken, expiryMs)
+
+    if (newRefreshToken && typeof window !== 'undefined') {
+      localStorage.setItem('admin_refresh_token', newRefreshToken)
+    }
+
     return accessToken
   }
 

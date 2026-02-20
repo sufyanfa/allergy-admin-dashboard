@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
 import {
   Edit,
   Trash2,
@@ -183,7 +182,8 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                     <TableHead>{t('name')}</TableHead>
                     <TableHead>{t('brand')}</TableHead>
                     <TableHead>{t('category')}</TableHead>
-                    <TableHead>{t('barcode')}</TableHead>
+                    <TableHead>Trust Score</TableHead>
+                    <TableHead>Verification</TableHead>
                     <TableHead>{t('dataSource')}</TableHead>
                     <TableHead className="text-right">{tCommon('actions')}</TableHead>
                   </TableRow>
@@ -194,6 +194,7 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           {product.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={product.imageUrl}
                               alt={product.nameAr}
@@ -215,6 +216,9 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                             {product.nameEn && (
                               <div className="text-sm text-muted-foreground">{product.nameEn}</div>
                             )}
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {product.barcode || 'No Barcode'}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
@@ -228,18 +232,27 @@ export function ProductsTable({ products, isLoading, onLoadMore, hasMore }: Prod
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{product.category}</Badge>
-                        {product.subcategory && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {product.subcategory}
-                          </div>
-                        )}
                       </TableCell>
                       <TableCell>
-                        <code className="text-sm bg-muted px-2 py-1 rounded">
-                          {product.barcode || (
-                            <span className="text-muted-foreground not-italic">N/A</span>
-                          )}
-                        </code>
+                        <div className="flex items-center space-x-2">
+                          <span className={`font-bold ${(product.confidenceScore || 0) >= 0.8 ? 'text-green-600' :
+                              (product.confidenceScore || 0) >= 0.5 ? 'text-yellow-600' :
+                                'text-red-600'
+                            }`}>
+                            {Math.round((product.confidenceScore || 0) * 100)}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {product.verified ? (
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
+                            Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground">
+                            Unverified
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>{getDataSourceBadge(product.dataSource)}</TableCell>
                       <TableCell className="text-right">

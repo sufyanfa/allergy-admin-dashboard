@@ -43,7 +43,7 @@ export function useAuth(requireAuth = true) {
     user: isHydrated ? user : null,
     isAuthenticated: isHydrated ? isAuthenticated : false,
     isLoading: isHydrated ? isLoading : true,
-    isAdmin: isHydrated && user?.role ? ['admin', 'authenticated'].includes(user.role) : false
+    isAdmin: isHydrated && user?.role === 'admin'
   }
 }
 

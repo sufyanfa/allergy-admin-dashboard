@@ -11,7 +11,7 @@ import { Group, GroupPost } from '@/types/groups'
 import { groupsApi } from '@/lib/api/groups'
 import { useTranslations } from '@/lib/hooks/use-translations'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
+
 import { Button } from '@/components/ui/button'
 import { MessageSquare, Users, ThumbsUp, Trash2 } from 'lucide-react'
 
@@ -27,23 +27,13 @@ export function GroupDetailModal({ group, isOpen, onClose }: GroupDetailModalPro
     const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
-        if (isOpen && group) {
-            loadPosts()
-        }
-    }, [isOpen, group])
-
-    const loadPosts = async () => {
-        if (!group) return
+        if (!isOpen || !group) return
         setIsLoading(true)
-        try {
-            const data = await groupsApi.getGroupPosts(group.id)
-            setPosts(data.posts || [])
-        } catch (error) {
-            console.error('Failed to load posts', error)
-        } finally {
-            setIsLoading(false)
-        }
-    }
+        groupsApi.getGroupPosts(group.id)
+            .then((data) => setPosts(data.posts || []))
+            .catch((error) => console.error('Failed to load posts', error))
+            .finally(() => setIsLoading(false))
+    }, [isOpen, group])
 
     const handleDeletePost = async (postId: string) => {
         if (!confirm(t('confirmDeletePost'))) return

@@ -21,7 +21,19 @@ export const config = {
   runtime: 'experimental-edge',
 }
 
-const PROTECTED_ROUTES = ['/dashboard', '/users', '/products', '/allergies']
+const PROTECTED_ROUTES = [
+  '/dashboard',
+  '/users',
+  '/products',
+  '/allergies',
+  '/trust',
+  '/groups',
+  '/contributions',
+  '/gamification',
+  '/analytics',
+  '/reports',
+  '/lists',
+]
 const AUTH_ROUTES = ['/auth/login']
 const PUBLIC_ROUTES = ['/']
 
