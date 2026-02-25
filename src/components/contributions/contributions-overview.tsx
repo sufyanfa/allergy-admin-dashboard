@@ -246,7 +246,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
       )}
 
       {/* Overview Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatsCard
           title={t("totalContributions")}
           value={overview?.totalContributions || 0}
@@ -260,6 +260,14 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
           value={overview?.pendingContributions || 0}
           icon="package"
           description={t("awaitingReview")}
+          loading={isLoading}
+        />
+
+        <StatsCard
+          title={t("communityReview")}
+          value={overview?.communityReviewContributions || 0}
+          icon="package"
+          description={t("inCommunityReview")}
           loading={isLoading}
         />
 
@@ -301,6 +309,14 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
               <span className="font-semibold">
                 {overview && overview.totalContributions > 0
                   ? Math.round((overview.approvedContributions / overview.totalContributions) * 100)
+                  : 0}%
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">{t('communityReviewRate')}</span>
+              <span className="font-semibold text-blue-600">
+                {overview && overview.totalContributions > 0
+                  ? Math.round(((overview.communityReviewContributions || 0) / overview.totalContributions) * 100)
                   : 0}%
               </span>
             </div>
@@ -413,6 +429,7 @@ export function ContributionsOverview({ className }: ContributionsOverviewProps)
                     <SelectContent>
                       <SelectItem value="all">{t('allStatuses')}</SelectItem>
                       <SelectItem value="pending">{t('pending')}</SelectItem>
+                      <SelectItem value="community_review">{t('communityReview')}</SelectItem>
                       <SelectItem value="approved">{t('approved')}</SelectItem>
                       <SelectItem value="rejected">{t('rejected')}</SelectItem>
                     </SelectContent>

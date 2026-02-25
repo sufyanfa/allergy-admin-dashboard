@@ -483,7 +483,7 @@ export interface SystemHealthApiResponse {
 }
 
 // Contribution Types
-export type ContributionStatus = 'pending' | 'approved' | 'rejected'
+export type ContributionStatus = 'pending' | 'community_review' | 'approved' | 'rejected'
 export type ContributionType = 'new_product' | 'edit_ingredients' | 'add_image' | 'report_error'
 
 export interface ContributionData {
@@ -507,6 +507,12 @@ export interface ContributionData {
   // For add_image type
   imageType?: 'front' | 'ingredients' | 'nutrition'
   imageUrl?: string
+  // Admin community review requests
+  isAdminRequest?: boolean
+  targetAllergyIds?: string[]
+  targetRoles?: string[]
+  targetField?: string
+  communityVotes?: Array<{ vote: 'approve' | 'reject'; userId?: string }>
 }
 
 export interface Contribution {
@@ -542,6 +548,7 @@ export interface Contribution {
 export interface ContributionsOverview {
   totalContributions: number
   pendingContributions: number
+  communityReviewContributions: number
   approvedContributions: number
   rejectedContributions: number
   typeDistribution: Array<{ type: string; count: number }>

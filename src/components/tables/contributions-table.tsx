@@ -51,15 +51,17 @@ export function ContributionsTable({
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline', label: string }> = {
-      pending: { variant: 'secondary', label: t('pending') },
-      approved: { variant: 'default', label: t('approved') },
-      rejected: { variant: 'destructive', label: t('rejected') }
+    const labels: Record<string, string> = {
+      pending: t('pending'),
+      community_review: t('communityReview'),
+      approved: t('approved'),
+      rejected: t('rejected')
     }
 
-    const { label } = variants[status] || variants.pending;
+    const label = labels[status] || status;
     const badgeClass = {
       pending: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+      community_review: 'bg-blue-50 text-blue-700 border border-blue-200',
       approved: 'bg-green-50 text-green-700 border border-green-200',
       rejected: 'bg-red-50 text-red-700 border border-red-200'
     }[status] || 'bg-gray-50 text-gray-600 border border-gray-200';
@@ -215,7 +217,7 @@ export function ContributionsTable({
                           {tCommon('view')}
                         </Button>
                       )}
-                      {contribution.status === 'pending' && (
+                      {(contribution.status === 'pending' || contribution.status === 'community_review') && (
                         <>
                           {onApprove && (
                             <Button

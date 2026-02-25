@@ -16,7 +16,7 @@ import apiClient from '@/lib/api/client'
 
 // Development-only logger - silent in production
 const isDev = process.env.NODE_ENV === 'development'
-const devError = isDev ? (...args: unknown[]) => console.error('[Products]', ...args) : () => {}
+const devError = isDev ? (...args: unknown[]) => console.error('[Products]', ...args) : () => { }
 
 interface ProductsState {
   products: Product[]
@@ -61,6 +61,9 @@ interface ProductsActions {
 
   // Allergy Check
   checkProductAllergies: (productId: string, userId?: string) => Promise<AllergyCheck>
+
+  // Community Review
+  requestCommunityReview: (productId: string, notes: string, targetAllergyIds?: string[], targetRoles?: string[], targetField?: string) => Promise<void>
 
   // State Management
   setCurrentProduct: (product: Product | null) => void
@@ -455,6 +458,36 @@ export const useProductsStore = create<ProductsStore>()(
           }
         } catch (error: unknown) {
           const message = (error as Error)?.message || 'Failed to check allergies'
+          set({
+            error: message,
+            isLoading: false
+          })
+          throw error
+        }
+      },
+
+      requestCommunityReview: async (productId: string, notes: string, targetAllergyIds?: string[], targetRoles?: string[], targetField?: string) => {
+        set({ isLoading: true, error: null })
+        try {
+          const response = await apiClient.post<ApiResponse<any>>('/community/contributions', {
+            productId,
+            contributionType: 'edit_product',
+            notes,
+            contributionData: {
+              isAdminRequest: true,
+              targetAllergyIds: targetAllergyIds || [],
+              targetRoles: targetRoles || [],
+              targetField: targetField || 'overall'
+            }
+          })
+
+          if (response.success) {
+            set({ isLoading: false })
+          } else {
+            throw new Error(response.message || 'Failed to request review')
+          }
+        } catch (error: unknown) {
+          const message = (error as Error)?.message || 'Failed to request review'
           set({
             error: message,
             isLoading: false

@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { CheckCircle, XCircle, Loader2, ExternalLink, User, Package, Calendar, FileText, Edit2 } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, ExternalLink, User, Package, Calendar, FileText, Edit2, ThumbsUp, ThumbsDown, Users } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -125,6 +125,10 @@ export function ContributionDetailModal({
     if (confidence >= 60) return 'text-yellow-600'
     return 'text-red-600'
   }
+
+  const communityVotes = contribution?.contributionData?.communityVotes || []
+  const approvals = communityVotes.filter((v: any) => v.vote === 'approve').length
+  const rejections = communityVotes.filter((v: any) => v.vote === 'reject').length
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -299,6 +303,28 @@ export function ContributionDetailModal({
                     ) : (
                       <p className="font-medium mt-1">{contribution.contributionData?.category || 'N/A'}</p>
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Community Votes Section */}
+            {(contribution.status === 'community_review' || communityVotes.length > 0) && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  <h3 className="font-semibold text-blue-500">{t('communityVote') || 'Community Votes'}</h3>
+                </div>
+                <div className="flex gap-4 p-4 rounded-lg border bg-blue-50/50">
+                  <div className="flex items-center gap-2 flex-1 justify-center bg-green-100/50 p-3 rounded-md border border-green-200">
+                    <ThumbsUp className="h-5 w-5 text-green-600" />
+                    <span className="font-bold text-green-700">{approvals}</span>
+                    <span className="text-sm text-green-700">{t('approvals') || 'Approvals'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-center bg-red-100/50 p-3 rounded-md border border-red-200">
+                    <ThumbsDown className="h-5 w-5 text-red-600" />
+                    <span className="font-bold text-red-700">{rejections}</span>
+                    <span className="text-sm text-red-700">{t('rejects') || 'Rejections'}</span>
                   </div>
                 </div>
               </div>
