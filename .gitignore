@@ -44,3 +44,4 @@ wrangler.toml
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+CLAUDE.md

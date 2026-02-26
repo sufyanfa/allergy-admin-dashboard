@@ -8,6 +8,7 @@ class ApiClient {
   private client: AxiosInstance
   private token: string | null = null
   private tokenExpiry: number | null = null
+  private refreshPromise: Promise<string> | null = null
 
   constructor() {
     const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api/${process.env.NEXT_PUBLIC_API_VERSION}`
@@ -92,69 +93,28 @@ class ApiClient {
   }
 
   setToken(token: string, expiry?: number) {
+    // Token lives in memory only.
+    // httpOnly cookies are set server-side by /api/auth/ proxy routes — never by JS.
     this.token = token
     this.tokenExpiry = expiry || null
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('admin_token', token)
-      if (expiry) {
-        localStorage.setItem('admin_token_expiry', expiry.toString())
-      }
-
-      // Also set as cookie for server-side middleware validation
-      const expiryDate = expiry ? new Date(expiry) : new Date(Date.now() + 604800000)
-      document.cookie = `admin_token=${token}; path=/; expires=${expiryDate.toUTCString()}; secure; samesite=strict`
-    }
   }
 
   clearToken() {
+    // Clear in-memory token only.
+    // httpOnly cookies are cleared by calling /api/auth/logout server route.
+    // Callers that end a session (logout, failed refresh) must call that route.
     this.token = null
     this.tokenExpiry = null
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('admin_token')
-      localStorage.removeItem('admin_token_expiry')
-
-      // Clear the cookie
-      document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict'
-    }
   }
 
   getStoredToken(): string | null {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('admin_token')
-      const expiry = localStorage.getItem('admin_token_expiry')
-
-      if (token && expiry) {
-        const expiryTime = parseInt(expiry, 10)
-        if (Date.now() >= expiryTime) {
-          // Token expired, clear it
-          this.clearToken()
-          return null
-        }
-        this.tokenExpiry = expiryTime
-        return token
-      } else if (token && !expiry) {
-        // Token exists but no expiry, assume it's valid for now
-        return token
-      }
-
-      return null
-    }
-    return null
+    // Token is memory-only — no localStorage fallback.
+    return this.token && this.isTokenValid() ? this.token : null
   }
 
   isTokenValid(): boolean {
     if (!this.tokenExpiry) {
-      // Recover expiry from localStorage rather than assuming the token is invalid.
-      // Without this, a refreshed token (stored without expiry) causes clearToken()
-      // to be called on the very next request.
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('admin_token_expiry')
-        if (stored) {
-          this.tokenExpiry = parseInt(stored, 10)
-          return Date.now() < this.tokenExpiry
-        }
-      }
-      // No expiry info at all — let the server decide (it will 401 if truly expired)
+      // No expiry recorded — let the server decide (will 401 if truly expired)
       return true
     }
     return Date.now() < this.tokenExpiry
@@ -170,36 +130,42 @@ class ApiClient {
   }
 
   private async refreshToken() {
-    const refreshToken = typeof window !== 'undefined'
-      ? localStorage.getItem('admin_refresh_token')
-      : null
-
-    if (!refreshToken) {
-      throw new Error('No refresh token available')
+    // Deduplicate: if a refresh is already in-flight, reuse its promise.
+    // This prevents multiple concurrent 401s from each consuming the rotating refresh token.
+    if (this.refreshPromise) {
+      return this.refreshPromise
     }
 
-    // Backend expects snake_case: { refresh_token }
-    const response = await this.client.post('/auth/refresh-token', {
-      refresh_token: refreshToken,
+    this.refreshPromise = this._doRefresh().finally(() => {
+      this.refreshPromise = null
     })
 
-    // Backend returns snake_case keys; support both for safety
-    const data = response.data?.data || response.data
-    const accessToken = data?.access_token || data?.accessToken
-    const newRefreshToken = data?.refresh_token || data?.refreshToken
+    return this.refreshPromise
+  }
+
+  private async _doRefresh(): Promise<string> {
+    // Call the Next.js server route — it reads the httpOnly refresh cookie.
+    // Using native fetch (not this.client) to avoid triggering interceptors again.
+    const response = await fetch('/api/auth/refresh-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Token refresh failed')
+    }
+
+    const accessToken = data.data?.access_token || data.data?.accessToken
+    const expiresIn = data.data?.expires_in || data.data?.expiresIn
 
     if (!accessToken) {
       throw new Error('No access token in refresh response')
     }
 
-    // Always persist an expiry so the next interceptor check doesn't
-    // hit the `this.token && !isTokenValid()` → clearToken() branch.
-    const expiryMs = this.extractJWTExpiry(accessToken) || (Date.now() + 3600000)
+    const expiryMs = this.extractJWTExpiry(accessToken) || (Date.now() + (expiresIn ? expiresIn * 1000 : 3600000))
     this.setToken(accessToken, expiryMs)
-
-    if (newRefreshToken && typeof window !== 'undefined') {
-      localStorage.setItem('admin_refresh_token', newRefreshToken)
-    }
 
     return accessToken
   }

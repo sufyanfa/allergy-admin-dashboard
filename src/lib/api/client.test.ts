@@ -31,34 +31,35 @@ describe('ApiClient', () => {
   let apiClient: any
 
   beforeEach(async () => {
-    // Reset localStorage
     localStorage.clear()
-    // Reset module to get a fresh singleton each describe block
     vi.resetModules()
     const mod = await import('./client')
     apiClient = mod.apiClient
   })
 
   describe('setToken / clearToken', () => {
-    it('stores token and expiry in localStorage', () => {
+    it('stores token in memory only — no localStorage, no cookie', () => {
       const expiry = Date.now() + 3600000
       apiClient.setToken('tok', expiry)
 
-      expect(localStorage.getItem('admin_token')).toBe('tok')
-      expect(localStorage.getItem('admin_token_expiry')).toBe(expiry.toString())
+      // Tokens must NOT appear in localStorage
+      expect(localStorage.getItem('admin_token')).toBeNull()
+      expect(localStorage.getItem('admin_token_expiry')).toBeNull()
+
+      // Token must NOT be written to document.cookie by JS
+      expect(document.cookie).not.toContain('admin_token=tok')
+
+      // But the token must be retrievable in memory
+      expect(apiClient.getStoredToken()).toBe('tok')
     })
 
-    it('clearToken removes all stored values', () => {
+    it('clearToken wipes in-memory token', () => {
       apiClient.setToken('tok', Date.now() + 3600000)
       apiClient.clearToken()
 
+      expect(apiClient.getStoredToken()).toBeNull()
+      // localStorage remains untouched (nothing was written there)
       expect(localStorage.getItem('admin_token')).toBeNull()
-      expect(localStorage.getItem('admin_token_expiry')).toBeNull()
-    })
-
-    it('sets admin_token cookie on setToken', () => {
-      apiClient.setToken('tok', Date.now() + 3600000)
-      expect(document.cookie).toContain('admin_token=tok')
     })
   })
 
@@ -73,53 +74,31 @@ describe('ApiClient', () => {
       expect(apiClient.isTokenValid()).toBe(false)
     })
 
-    it('recovers expiry from localStorage when in-memory expiry is missing', () => {
-      // Simulate the state after a cold start: token in localStorage, no in-memory state
-      const futureExpiry = Date.now() + 3600000
-      localStorage.setItem('admin_token', 'tok')
-      localStorage.setItem('admin_token_expiry', futureExpiry.toString())
-
-      // tokenExpiry is null on this fresh instance - should recover from storage
-      expect(apiClient.isTokenValid()).toBe(true)
-    })
-
     it('returns true (let server decide) when no expiry info exists', () => {
-      // No expiry anywhere - should not incorrectly report invalid
+      // No expiry anywhere — should not incorrectly report invalid
       expect(apiClient.isTokenValid()).toBe(true)
     })
   })
 
   describe('getStoredToken', () => {
-    it('returns token when valid', () => {
-      const expiry = Date.now() + 3600000
-      localStorage.setItem('admin_token', 'valid_tok')
-      localStorage.setItem('admin_token_expiry', expiry.toString())
-
+    it('returns in-memory token when valid', () => {
+      apiClient.setToken('valid_tok', Date.now() + 3600000)
       expect(apiClient.getStoredToken()).toBe('valid_tok')
     })
 
-    it('returns null and clears when token is expired', () => {
-      localStorage.setItem('admin_token', 'old_tok')
-      localStorage.setItem('admin_token_expiry', (Date.now() - 1000).toString())
-
-      const result = apiClient.getStoredToken()
-      expect(result).toBeNull()
-      expect(localStorage.getItem('admin_token')).toBeNull()
+    it('returns null when no token has been set', () => {
+      expect(apiClient.getStoredToken()).toBeNull()
     })
 
-    it('returns token when no expiry is stored (legacy)', () => {
-      localStorage.setItem('admin_token', 'legacy_tok')
-      // No expiry stored
-
-      expect(apiClient.getStoredToken()).toBe('legacy_tok')
+    it('returns null when in-memory token is expired', () => {
+      apiClient.setToken('old_tok', Date.now() - 1000)
+      expect(apiClient.getStoredToken()).toBeNull()
     })
   })
 
   describe('locale-aware redirect on 401', () => {
     it('redirects to /{locale}/auth/login using NEXT_LOCALE cookie', () => {
-      // Set locale cookie
       document.cookie = 'NEXT_LOCALE=en'
-      // Simulate what the interceptor does
       const locale = document.cookie
         .split('; ')
         .find(row => row.startsWith('NEXT_LOCALE='))
@@ -130,7 +109,6 @@ describe('ApiClient', () => {
     })
 
     it('falls back to ar locale when NEXT_LOCALE cookie is absent', () => {
-      // Clear cookies
       document.cookie = 'NEXT_LOCALE=; expires=Thu, 01 Jan 1970 00:00:00 GMT'
 
       const locale = document.cookie

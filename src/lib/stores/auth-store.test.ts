@@ -28,15 +28,21 @@ function makeApiError(status: number, message = 'error'): Error {
   return e
 }
 
+// Helper: mock global.fetch for server-route calls
+function mockFetch(response: { ok: boolean; status?: number; body: object }) {
+  return vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+    ok: response.ok,
+    status: response.status ?? (response.ok ? 200 : 401),
+    json: async () => response.body,
+  } as Response)
+}
+
 describe('useAuthStore.getProfile()', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     localStorage.clear()
 
-    // Reset module so store state is fresh
     vi.resetModules()
-
-    // Re-apply mock after resetModules
     vi.mock('@/lib/api/client', () => ({
       default: mockApiClient,
       apiClient: mockApiClient,
@@ -47,7 +53,6 @@ describe('useAuthStore.getProfile()', () => {
     const { useAuthStore } = await import('./auth-store')
     useAuthStore.getState()
 
-    // Seed authenticated state
     useAuthStore.setState({
       isAuthenticated: true,
       user: { id: '1', email: 'a@b.com', role: 'admin' } as any,
@@ -55,8 +60,9 @@ describe('useAuthStore.getProfile()', () => {
       isHydrated: true,
     })
 
-    // API returns 401
     mockApiClient.get.mockRejectedValueOnce(makeApiError(401, 'Unauthorized'))
+    // getProfile calls /api/auth/logout on auth error (fire-and-forget)
+    mockFetch({ ok: true, body: { success: true } })
 
     await useAuthStore.getState().getProfile()
 
@@ -77,6 +83,7 @@ describe('useAuthStore.getProfile()', () => {
     })
 
     mockApiClient.get.mockRejectedValueOnce(makeApiError(403, 'Forbidden'))
+    mockFetch({ ok: true, body: { success: true } })
 
     await useAuthStore.getState().getProfile()
 
@@ -96,18 +103,15 @@ describe('useAuthStore.getProfile()', () => {
       isHydrated: true,
     })
 
-    // Network error — no status property
     const networkErr = new Error('Network Error')
     mockApiClient.get.mockRejectedValueOnce(networkErr)
 
     await useAuthStore.getState().getProfile()
 
     const state = useAuthStore.getState()
-    // Should NOT clear auth
     expect(state.isAuthenticated).toBe(true)
     expect(state.user).toEqual(originalUser)
     expect(mockApiClient.clearToken).not.toHaveBeenCalled()
-    // Should set an error message
     expect(state.error).toBe('Network Error')
   })
 
@@ -161,9 +165,8 @@ describe('useAuthStore.getProfile()', () => {
   })
 })
 
-describe('useAuthStore.initializeAuth() — access token missing but refresh token present', () => {
+describe('useAuthStore.initializeAuth()', () => {
   beforeEach(() => {
-    // Use resetAllMocks (not clearAllMocks) to also flush queued mockReturnValueOnce entries
     vi.resetAllMocks()
     localStorage.clear()
     vi.resetModules()
@@ -173,37 +176,46 @@ describe('useAuthStore.initializeAuth() — access token missing but refresh tok
     }))
   })
 
-  it('silently refreshes when admin_token is gone but refresh token exists', async () => {
+  it('silently refreshes and fetches profile when no in-memory token (page reload)', async () => {
     const { useAuthStore } = await import('./auth-store')
 
-    // Simulates the broken state: zustand says authenticated, but access token was cleared
     useAuthStore.setState({
       isAuthenticated: true,
       user: { id: '1', email: 'a@b.com', role: 'admin' } as any,
       tokenExpiry: Date.now() + 3600000,
       isHydrated: true,
     })
-    // No admin_token in localStorage — only refresh token survives
-    localStorage.setItem('admin_refresh_token', 'valid_refresh_tok')
-    mockApiClient.getStoredToken.mockReturnValueOnce(null)
+    // No in-memory token (simulates page reload)
+    mockApiClient.getStoredToken.mockReturnValue(null)
 
-    // Refresh call returns new tokens
-    mockApiClient.post.mockResolvedValueOnce({
+    // refreshTokens() calls /api/auth/refresh-token server route
+    mockFetch({
+      ok: true,
+      body: { success: true, data: { access_token: 'new_access', expires_in: 3600 } },
+    })
+
+    // getProfile() is called after successful refresh
+    mockApiClient.get.mockResolvedValueOnce({
       success: true,
       data: {
-        tokens: { access_token: 'new_access', refresh_token: 'new_refresh', expires_in: 3600 },
+        profile: {
+          id: '1',
+          email: 'a@b.com',
+          role: 'admin',
+          permissions: ['system.analytics'],
+        },
       },
     })
-    // Note: getProfile is NOT called after refresh (user data already in zustand state)
+    mockApiClient.getStoredToken.mockReturnValue('new_access')
 
     await useAuthStore.getState().initializeAuth()
 
     const state = useAuthStore.getState()
-    // Should stay authenticated — refresh succeeded, no getProfile needed
     expect(state.isAuthenticated).toBe(true)
+    expect(mockApiClient.setToken).toHaveBeenCalledWith('new_access', expect.any(Number))
   })
 
-  it('clears state when both access token and refresh token are missing', async () => {
+  it('clears state when refresh token cookie is absent or expired', async () => {
     const { useAuthStore } = await import('./auth-store')
 
     useAuthStore.setState({
@@ -212,14 +224,50 @@ describe('useAuthStore.initializeAuth() — access token missing but refresh tok
       tokenExpiry: Date.now() + 3600000,
       isHydrated: true,
     })
-    // Neither token in localStorage
-    mockApiClient.getStoredToken.mockReturnValueOnce(null)
+    mockApiClient.getStoredToken.mockReturnValue(null)
+
+    // Server route returns 401 — no valid refresh cookie
+    mockFetch({
+      ok: false,
+      status: 401,
+      body: { success: false, message: 'No refresh token' },
+    })
 
     await useAuthStore.getState().initializeAuth()
 
     const state = useAuthStore.getState()
     expect(state.isAuthenticated).toBe(false)
     expect(state.user).toBeNull()
+  })
+
+  it('uses in-memory token and fetches profile when token is already set', async () => {
+    const { useAuthStore } = await import('./auth-store')
+
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: null,
+      isHydrated: true,
+    })
+    // In-memory token is still alive
+    mockApiClient.getStoredToken.mockReturnValue('existing_token')
+
+    mockApiClient.get.mockResolvedValueOnce({
+      success: true,
+      data: {
+        profile: {
+          id: '1',
+          email: 'a@b.com',
+          role: 'admin',
+          permissions: ['system.analytics'],
+        },
+      },
+    })
+    mockApiClient.getStoredToken.mockReturnValue('existing_token')
+
+    await useAuthStore.getState().initializeAuth()
+
+    const state = useAuthStore.getState()
+    expect(state.isAuthenticated).toBe(true)
   })
 })
 
@@ -234,7 +282,7 @@ describe('useAuthStore.logout()', () => {
     }))
   })
 
-  it('clears all state regardless of API failure', async () => {
+  it('clears all state regardless of server route failure', async () => {
     const { useAuthStore } = await import('./auth-store')
 
     useAuthStore.setState({
@@ -242,8 +290,8 @@ describe('useAuthStore.logout()', () => {
       user: { id: '1', email: 'a@b.com', role: 'admin' } as any,
     })
 
-    // Logout API call fails
-    mockApiClient.post.mockRejectedValueOnce(new Error('Server error'))
+    // /api/auth/logout server route fails
+    vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'))
 
     await useAuthStore.getState().logout()
 
@@ -251,6 +299,23 @@ describe('useAuthStore.logout()', () => {
     expect(state.isAuthenticated).toBe(false)
     expect(state.user).toBeNull()
     expect(mockApiClient.clearToken).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls /api/auth/logout server route (not backend directly)', async () => {
+    const { useAuthStore } = await import('./auth-store')
+
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: { id: '1', email: 'a@b.com', role: 'admin' } as any,
+    })
+
+    const fetchSpy = mockFetch({ ok: true, body: { success: true } })
+
+    await useAuthStore.getState().logout()
+
+    expect(fetchSpy).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' })
+    // apiClient.post should NOT have been called (no direct backend call)
+    expect(mockApiClient.post).not.toHaveBeenCalled()
   })
 })
 
@@ -287,14 +352,12 @@ describe('useAuthStore.validateToken()', () => {
     expect(useAuthStore.getState().validateToken()).toBe(false)
   })
 
-  it('falls back to localStorage expiry when state tokenExpiry is null', async () => {
+  it('returns false when tokenExpiry is null (no localStorage fallback)', async () => {
     const { useAuthStore } = await import('./auth-store')
 
-    const futureExpiry = Date.now() + 3600000
-    localStorage.setItem('admin_token_expiry', futureExpiry.toString())
-
+    // tokenExpiry is not in Zustand persist anymore — null means unknown, treated as invalid
     useAuthStore.setState({ tokenExpiry: null, isHydrated: true })
 
-    expect(useAuthStore.getState().validateToken()).toBe(true)
+    expect(useAuthStore.getState().validateToken()).toBe(false)
   })
 })

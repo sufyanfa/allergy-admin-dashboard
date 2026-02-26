@@ -135,9 +135,17 @@ export function middleware(request: NextRequest) {
   // Get token from cookie
   const token = request.cookies.get('admin_token')?.value
 
-  // Handle root route - redirect to dashboard if authenticated, login if not
+  // Refresh token is the persistent session indicator.
+  // The access token (admin_token) expires in ~1hr but the refresh token lives 7 days.
+  // Middleware must NOT redirect to login just because the access token is expired —
+  // the client's initializeAuth() will silently refresh it on load.
+  const refreshToken = request.cookies.get('admin_refresh_token')?.value
+  const hasSession = !!refreshToken
+  const hasValidAccessToken = token && !isTokenExpired(token)
+
+  // Handle root route
   if (isPublicRoute && pathnameWithoutLocale === '/') {
-    if (token && !isTokenExpired(token) && hasAdminPermissions(token)) {
+    if (hasSession || (hasValidAccessToken && hasAdminPermissions(token!))) {
       return NextResponse.redirect(new URL(`/${pathnameLocale}/dashboard`, request.url))
     }
     return NextResponse.redirect(new URL(`/${pathnameLocale}/auth/login`, request.url))
@@ -145,34 +153,27 @@ export function middleware(request: NextRequest) {
 
   // If protected route, check authentication
   if (isProtectedRoute) {
-    if (!token) {
-      // No token, redirect to login
+    // No session at all (neither access nor refresh token)
+    if (!hasSession && !hasValidAccessToken) {
       const loginUrl = new URL(`/${pathnameLocale}/auth/login`, request.url)
       loginUrl.searchParams.set('redirect', pathnameWithoutLocale)
       return NextResponse.redirect(loginUrl)
     }
 
-    // Check if token is expired
-    if (isTokenExpired(token)) {
-      // Token expired, redirect to login
-      const loginUrl = new URL(`/${pathnameLocale}/auth/login`, request.url)
-      loginUrl.searchParams.set('redirect', pathnameWithoutLocale)
-      loginUrl.searchParams.set('expired', 'true')
-      return NextResponse.redirect(loginUrl)
-    }
-
-    // Check if user has admin permissions
-    if (!hasAdminPermissions(token)) {
-      // Not an admin, redirect to login with error
+    // Valid access token — enforce admin permissions
+    if (hasValidAccessToken && !hasAdminPermissions(token!)) {
       const loginUrl = new URL(`/${pathnameLocale}/auth/login`, request.url)
       loginUrl.searchParams.set('redirect', pathnameWithoutLocale)
       loginUrl.searchParams.set('error', 'admin_required')
       return NextResponse.redirect(loginUrl)
     }
+
+    // If access token is expired but refresh token exists → let through.
+    // initializeAuth() on the client will call /api/auth/refresh-token and restore the session.
   }
 
-  // If authenticated admin tries to access login page, redirect to dashboard
-  if (isAuthRoute && token && !isTokenExpired(token) && hasAdminPermissions(token)) {
+  // If user with an active session tries to access login page, send to dashboard
+  if (isAuthRoute && (hasSession || (hasValidAccessToken && hasAdminPermissions(token!)))) {
     return NextResponse.redirect(new URL(`/${pathnameLocale}/dashboard`, request.url))
   }
 

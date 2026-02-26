@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       permissions: [],
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true, // true until initializeAuth() completes — blocks AuthGuard from showing children early
       error: null,
       tokenExpiry: null,
       isHydrated: false,
@@ -70,8 +70,9 @@ export const useAuthStore = create<AuthStore>()(
             const { tokens } = responseData.data
 
             // Extract tokens from the tokens object
+            // Note: refresh_token is stripped from the response by the server route
+            // and stored as an httpOnly cookie — it never reaches this code.
             const finalAccessToken = tokens?.access_token || tokens?.accessToken
-            const finalRefreshToken = tokens?.refresh_token || tokens?.refreshToken
             const finalExpiresIn = tokens?.expires_in || tokens?.expiresIn
 
             // Validate tokens exist
@@ -121,15 +122,9 @@ export const useAuthStore = create<AuthStore>()(
             // Calculate token expiry time
             const tokenExpiry = Date.now() + (finalExpiresIn ? finalExpiresIn * 1000 : 604800000) // Default 1 week
 
-            // Store tokens securely
+            // Store access token in memory only.
+            // httpOnly cookies (access + refresh) are set by the verify-otp server route.
             apiClient.setToken(finalAccessToken, tokenExpiry)
-            if (typeof window !== 'undefined') {
-              // Store refresh token with httpOnly flag simulation
-              if (finalRefreshToken) {
-                localStorage.setItem('admin_refresh_token', finalRefreshToken)
-              }
-              localStorage.setItem('admin_token_expiry', tokenExpiry.toString())
-            }
 
             set({
               user,
@@ -159,24 +154,19 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true })
 
         try {
-          await apiClient.post('/auth/logout')
+          // Server route clears httpOnly cookies AND notifies the backend
+          await fetch('/api/auth/logout', { method: 'POST' })
         } catch {
           devError('Logout failed')
         } finally {
-          // Clear local state regardless of API response
           apiClient.clearToken()
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('admin_refresh_token')
-            localStorage.removeItem('admin_token_expiry')
-          }
-
           set({
             user: null,
             permissions: [],
             isAuthenticated: false,
             isLoading: false,
             error: null,
-            tokenExpiry: null
+            tokenExpiry: null,
           })
         }
       },
@@ -250,13 +240,11 @@ export const useAuthStore = create<AuthStore>()(
               isAuthenticated: false,
               user: null,
               permissions: [],
-              tokenExpiry: null
+              tokenExpiry: null,
             })
             apiClient.clearToken()
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('admin_refresh_token')
-              localStorage.removeItem('admin_token_expiry')
-            }
+            // Clear httpOnly cookies via server route (best-effort)
+            fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
           } else {
             // Transient error — keep existing auth state, just stop loading
             set({ error: message, isLoading: false })
@@ -303,95 +291,40 @@ export const useAuthStore = create<AuthStore>()(
 
       validateToken: () => {
         const { tokenExpiry } = get()
-        const storedExpiry = typeof window !== 'undefined'
-          ? localStorage.getItem('admin_token_expiry')
-          : null
-
-        // Use stored expiry if tokenExpiry from state is not available (during hydration)
-        const expiryTime = tokenExpiry || (storedExpiry ? parseInt(storedExpiry, 10) : null)
-
-        if (!expiryTime) return false
-        return Date.now() < expiryTime
+        if (!tokenExpiry) return false
+        return Date.now() < tokenExpiry
       },
 
       initializeAuth: async () => {
-        const { isHydrated, isAuthenticated } = get()
+        const { isHydrated } = get()
 
-        // Wait for hydration to complete
-        if (!isHydrated) return
+        // Wait for Zustand persist rehydration to complete
+        if (!isHydrated) {
+          set({ isLoading: false })
+          return
+        }
 
         set({ isLoading: true })
 
         try {
           const token = apiClient.getStoredToken()
 
-          if (token && !isAuthenticated) {
-            // Check if token is valid
-            if (get().validateToken()) {
-              // Set token and get profile
-              const storedExpiry = typeof window !== 'undefined'
-                ? localStorage.getItem('admin_token_expiry')
-                : null
-
-              if (storedExpiry) {
-                const expiryTime = parseInt(storedExpiry, 10)
-                apiClient.setToken(token, expiryTime)
-
-                // Update tokenExpiry in state if it's missing
-                if (!get().tokenExpiry) {
-                  set({ tokenExpiry: expiryTime })
-                }
-              } else {
-                apiClient.setToken(token)
-              }
-
+          if (token) {
+            // In-memory token is still alive (same JS session, no page reload)
+            await get().getProfile()
+          } else {
+            // No in-memory token (e.g. page reload) — try to restore the session
+            // silently using the httpOnly refresh cookie via the server route.
+            try {
+              await get().refreshTokens()
               await get().getProfile()
-            } else {
-              // Token expired, try to refresh
-              try {
-                await get().refreshTokens()
-              } catch {
-                // Refresh failed, clear everything
-                get().logout()
-              }
-            }
-          } else if (token && isAuthenticated) {
-            // Token present and already marked authenticated — restore it into
-            // the ApiClient in-memory state (lost on page reload) and keep going.
-            const storedExpiry = typeof window !== 'undefined'
-              ? localStorage.getItem('admin_token_expiry')
-              : null
-            const expiryTime = get().tokenExpiry || (storedExpiry ? parseInt(storedExpiry, 10) : undefined)
-            apiClient.setToken(token, expiryTime)
-          } else if (!token && isAuthenticated) {
-            // Access token is gone from localStorage (e.g. cleared by a previous
-            // session bug) but refresh token and zustand state are still valid.
-            // Try a silent refresh before logging the user out.
-            const refreshToken = typeof window !== 'undefined'
-              ? localStorage.getItem('admin_refresh_token')
-              : null
-
-            if (refreshToken) {
-              try {
-                await get().refreshTokens()
-                // Refresh succeeded — user data already in persisted zustand state.
-                // No need to re-fetch profile; the new token is now in localStorage.
-              } catch {
-                // Refresh also failed — session is truly gone
-                set({
-                  user: null,
-                  permissions: [],
-                  isAuthenticated: false,
-                  tokenExpiry: null
-                })
-              }
-            } else {
-              // No refresh token either — clear everything
+            } catch {
+              // Refresh failed: session is gone, clear persisted UI state
               set({
                 user: null,
                 permissions: [],
                 isAuthenticated: false,
-                tokenExpiry: null
+                tokenExpiry: null,
               })
             }
           }
@@ -402,7 +335,7 @@ export const useAuthStore = create<AuthStore>()(
             permissions: [],
             isAuthenticated: false,
             tokenExpiry: null,
-            error: 'Authentication initialization failed'
+            error: 'Authentication initialization failed',
           })
         } finally {
           set({ isLoading: false })
@@ -417,40 +350,25 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const refreshToken = typeof window !== 'undefined'
-            ? localStorage.getItem('admin_refresh_token')
-            : null
-
-          if (!refreshToken) {
-            throw new Error('No refresh token available')
-          }
-
-          // Use apiClient directly — backend requires snake_case { refresh_token }
-          const responseData = await apiClient.post<any>('/auth/refresh-token', {
-            refresh_token: refreshToken,
+          // Server route reads the httpOnly refresh cookie — no body or token needed
+          const response = await fetch('/api/auth/refresh-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
           })
 
+          const responseData = await response.json()
+
           if (responseData.success) {
-            // Handle both old and new token response formats
-            const tokens = responseData.data?.tokens || responseData.data
-            const accessToken = tokens.access_token || tokens.accessToken
-            const newRefreshToken = tokens.refresh_token || tokens.refreshToken
-            const expiresIn = tokens.expires_in || tokens.expiresIn
+            const data = responseData.data
+            const accessToken = data?.access_token || data?.accessToken
+            const expiresIn = data?.expires_in || data?.expiresIn
 
-            // Calculate new token expiry
-            const tokenExpiry = Date.now() + (expiresIn ? expiresIn * 1000 : 604800000)
+            if (!accessToken) throw new Error('No access token in refresh response')
 
-            // Update tokens
+            const tokenExpiry = Date.now() + (expiresIn ? expiresIn * 1000 : 3600000)
             apiClient.setToken(accessToken, tokenExpiry)
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('admin_refresh_token', newRefreshToken)
-              localStorage.setItem('admin_token_expiry', tokenExpiry.toString())
-            }
 
-            set({
-              isLoading: false,
-              tokenExpiry
-            })
+            set({ isLoading: false, tokenExpiry })
           } else {
             throw new Error(responseData.message || 'Token refresh failed')
           }
@@ -462,16 +380,11 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: false,
             user: null,
             permissions: [],
-            tokenExpiry: null
+            tokenExpiry: null,
           })
-
-          // Clear invalid tokens
           apiClient.clearToken()
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('admin_refresh_token')
-            localStorage.removeItem('admin_token_expiry')
-          }
-
+          // Clear httpOnly cookies via server route (best-effort)
+          fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
           throw error
         }
       },
@@ -482,7 +395,8 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         permissions: state.permissions,
         isAuthenticated: state.isAuthenticated,
-        tokenExpiry: state.tokenExpiry
+        // tokenExpiry is intentionally NOT persisted — it belongs to the in-memory
+        // token only and is always restored via the httpOnly refresh cookie on reload.
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
