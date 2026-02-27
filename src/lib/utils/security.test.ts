@@ -129,40 +129,14 @@ describe('getJWTExpiry', () => {
 })
 
 // ---------------------------------------------------------------------------
-// setupCSP  (development vs production connect-src)
+// setupCSP  (now a no-op — CSP is set via nonce-based HTTP headers in middleware)
 // ---------------------------------------------------------------------------
 
 describe('setupCSP', () => {
-  beforeEach(() => {
-    // Remove any existing CSP meta added by a previous test
-    document
-      .querySelectorAll('meta[http-equiv="Content-Security-Policy"]')
-      .forEach(el => el.remove())
-  })
-
-  it('injects a <meta> CSP tag', () => {
+  it('is a no-op (CSP handled by middleware nonce-based headers)', () => {
     setupCSP()
     const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]')
-    expect(meta).not.toBeNull()
-  })
-
-  it('does not inject a second CSP tag if one already exists', () => {
-    setupCSP()
-    setupCSP() // second call should be a no-op
-    const metas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]')
-    expect(metas.length).toBe(1)
-  })
-
-  it('CSP content includes connect-src directive', () => {
-    setupCSP()
-    const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]') as HTMLMetaElement
-    expect(meta?.content).toContain('connect-src')
-  })
-
-  it('CSP content includes default-src directive', () => {
-    setupCSP()
-    const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]') as HTMLMetaElement
-    expect(meta?.content).toContain("default-src 'self'")
+    expect(meta).toBeNull()
   })
 })
 

@@ -120,39 +120,11 @@ export function validateSession(): boolean {
   }
 }
 
-// Content Security Policy helpers
+// Content Security Policy — handled by nonce-based CSP in middleware.ts.
+// This function is kept as a no-op for backwards compatibility.
 export function setupCSP(): void {
-  if (typeof document === 'undefined') return
-  if (document.querySelector('meta[http-equiv="Content-Security-Policy"]')) return
-
-  const isDev = process.env.NODE_ENV === 'development'
-  // NEXT_PUBLIC_* vars are inlined at build time — safe to reference here
-  const apiOrigin = process.env.NEXT_PUBLIC_API_URL || ''
-
-  // In development the backend runs on HTTP localhost, which 'self' and 'https:'
-  // both reject.  Allow the API origin explicitly and include WebSocket for HMR.
-  const connectSrc = isDev
-    ? `'self' ${apiOrigin} ws://localhost:* http://localhost:*`
-    : `'self' ${apiOrigin} https:`
-
-  const imgSrc = isDev
-    ? "'self' data: https: http://localhost:*"
-    : "'self' data: https:"
-
-  const meta = document.createElement('meta')
-  meta.httpEquiv = 'Content-Security-Policy'
-  // NOTE: frame-ancestors is silently ignored inside <meta> CSP tags.
-  // It is set as an HTTP response header in next.config.js instead.
-  meta.content = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline'",
-    `img-src ${imgSrc}`,
-    "font-src 'self' data:",
-    `connect-src ${connectSrc}`,
-  ].join('; ')
-
-  document.head.appendChild(meta)
+  // CSP is now set as an HTTP response header with per-request nonces
+  // in middleware.ts. No client-side meta tag needed.
 }
 
 // Secure storage wrapper

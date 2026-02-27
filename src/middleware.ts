@@ -177,10 +177,41 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${pathnameLocale}/dashboard`, request.url))
   }
 
-  // Create response with security headers
-  const response = NextResponse.next()
+  // Generate a per-request nonce for CSP
+  const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))))
 
-  // Add security headers
+  const isDev = process.env.NODE_ENV === 'development'
+  const apiOrigin = process.env.NEXT_PUBLIC_API_URL || ''
+
+  const connectSrc = isDev
+    ? `'self' ${apiOrigin} ws://localhost:* http://localhost:*`
+    : `'self' ${apiOrigin} https:`
+
+  const imgSrc = isDev
+    ? "'self' data: https: http://localhost:*"
+    : "'self' data: https:"
+
+  const cspHeader = [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    `img-src ${imgSrc}`,
+    "font-src 'self' data:",
+    `connect-src ${connectSrc}`,
+    "frame-ancestors 'none'",
+  ].join('; ')
+
+  // Pass nonce to server components via request headers
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', cspHeader)
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  })
+
+  // Set CSP + security headers on the response
+  response.headers.set('Content-Security-Policy', cspHeader)
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
