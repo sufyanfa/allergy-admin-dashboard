@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Flag,
   Trophy,
+  BookOpen,
   LucideIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -33,6 +34,7 @@ const iconMap: Record<string, LucideIcon> = {
   MessageSquare,
   Flag,
   Trophy,
+  BookOpen,
 }
 
 interface SidebarProps {

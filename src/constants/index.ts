@@ -155,6 +155,12 @@ export const NAVIGATION_ITEMS = [
     href: '/reports',
     icon: 'Flag',
   },
+  {
+    title: 'Guides',
+    translationKey: 'guides',
+    href: '/guides',
+    icon: 'BookOpen',
+  },
 ] as const
 
 // User Roles and Permissions
